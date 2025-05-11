@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { margin: 1cm; }
+        body { 
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            padding: 20px;
+            border-bottom: 3px solid #a52834;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            width: 200px;
+            height: auto;
+        }
+        .document-info {
+            text-align: right;
+            font-size: 14px;
+        }
+        .offer-number {
+            color: #a52834;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .date {
+            color: #666;
+        }
+        .content {
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #a52834;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+        }
+        .info-value {
+            font-size: 14px;
+            margin-top: 3px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #a52834;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+            border: 1px solid #dee2e6;
+        }
+        td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            font-size: 14px;
+        }
+        .total-section {
+            margin-top: 30px;
+            text-align: right;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .total-label {
+            font-weight: bold;
+            margin-right: 20px;
+            color: #666;
+        }
+        .total-value {
+            min-width: 120px;
+            text-align: right;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='cermak-logo.png', _external=True) }}" alt="Cermak Logo" class="logo">
+        <div class="document-info">
+            <div class="offer-number">Teklif No: {{ offer.offer_number }}</div>
+            <div class="date">Tarih: {{ offer.created_at.strftime('%d.%m.%Y') }}</div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="section">
+            <div class="section-title">Müşteri Bilgileri</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Müşteri</div>
+                    <div class="info-value">{{ offer.customer_first_name }} {{ offer.customer_last_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Şirket</div>
+                    <div class="info-value">{{ offer.company_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Telefon</div>
+                    <div class="info-value">{{ offer.phone }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Teklif Veren</div>
+                    <div class="info-value">{{ offer.offeror_name }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Makine Bilgileri</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Model</div>
+                    <div class="info-value">{{ offer.machine_model }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Seri No</div>
+                    <div class="info-value">{{ offer.serial_number }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Filtre Türü</div>
+                    <div class="info-value">{{ offer.filter_type }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Maliyet Detayları</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kalem</th>
+                        <th style="text-align: right;">Tutar (TL)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>İşçilik Ücreti</td>
+                        <td style="text-align: right;">{{ (offer.labor_cost * eur_to_try) | format_currency }}</td>
+                    </tr>
+                    <tr>
+                        <td>Yol Ücreti</td>
+                        <td style="text-align: right;">{{ (offer.travel_cost * eur_to_try) | format_currency }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="total-section">
+                <div class="total-row">
+                    <div class="total-label">Toplam Tutar</div>
+                    <div class="total-value">{{ total_amount_try | format_currency }}</div>
+                </div>
+                {% if offer.discount_type != 'none' %}
+                <div class="total-row">
+                    <div class="total-label">İskonto ({{ 'Oran' if offer.discount_type == 'percentage' else 'Tutar' }})</div>
+                    <div class="total-value">{{ offer.discount_value }}{{ '%' if offer.discount_type == 'percentage' else ' TL' }}</div>
+                </div>
+                {% endif %}
+                <div class="total-row" style="margin-top: 20px; font-size: 16px; color: #a52834;">
+                    <div class="total-label">İndirimli Toplam</div>
+                    <div class="total-value">{{ total_amount_try | format_currency }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>CERMAK SERVİS HİZMETLERİ VE YEDEK PARÇA LTD. ŞTİ.</p>
+        <p>Bu teklif {{ offer.created_at.strftime('%d.%m.%Y') }} tarihinde oluşturulmuştur.</p>
+    </div>
+</body>
+</html>

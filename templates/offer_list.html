@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}
+Teklif Listesi - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        <div class="text-center mb-5 hero-section">
+            <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-3" style="height: 80px; width: auto;">
+            <h1 class="display-5 text-danger fw-bold">Teklif Listesi</h1>
+            <p class="lead fw-light text-muted">Tekliflerinizi görüntüleyin ve yönetin</p>
+        </div>
+
+        <!-- Filtreleme Formu -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('periodic_maintenance.offer_list') }}">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status_filter" class="form-label">Durum</label>
+                            <select name="status_filter" id="status_filter" class="form-select">
+                                <option value="">Tümü</option>
+                                <option value="Teklif Verildi" {% if status_filter == 'Teklif Verildi' %}selected{% endif %}>Teklif Verildi</option>
+                                <option value="Teklif Kabul Edildi" {% if status_filter == 'Teklif Kabul Edildi' %}selected{% endif %}>Teklif Kabul Edildi</option>
+                                <option value="Teklif Kabul Edilmedi" {% if status_filter == 'Teklif Kabul Edilmedi' %}selected{% endif %}>Teklif Kabul Edilmedi</option>
+                                <option value="Parçalar Hazırlandı" {% if status_filter == 'Parçalar Hazırlandı' %}selected{% endif %}>Parçalar Hazırlandı</option>
+                                <option value="Parçalar Teslim Edildi" {% if status_filter == 'Parçalar Teslim Edildi' %}selected{% endif %}>Parçalar Teslim Edildi</option>
+                                <option value="Servis Yola Çıktı" {% if status_filter == 'Servis Yola Çıktı' %}selected{% endif %}>Servis Yola Çıktı</option>
+                                <option value="Ödeme Alındı" {% if status_filter == 'Ödeme Alındı' %}selected{% endif %}>Ödeme Alındı</option>
+                                <option value="Faturalandırıldı" {% if status_filter == 'Faturalandırıldı' %}selected{% endif %}>Faturalandırıldı</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="machine_model_filter" class="form-label">Makine Modeli</label>
+                            <select name="machine_model_filter" id="machine_model_filter" class="form-select">
+                                <option value="">Tümü</option>
+                                {% for model in machine_models %}
+                                <option value="{{ model }}" {% if machine_model_filter == model %}selected{% endif %}>{{ model }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="offer_number_filter" class="form-label">Teklif Numarası</label>
+                            <input type="text" name="offer_number_filter" id="offer_number_filter" class="form-control" value="{{ offer_number_filter }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="customer_name_filter" class="form-label">Müşteri/Şirket Adı</label>
+                            <input type="text" name="customer_name_filter" id="customer_name_filter" class="form-control" value="{{ customer_name_filter }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_from" class="form-label">Başlangıç Tarihi</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ date_from }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_to" class="form-label">Bitiş Tarihi</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ date_to }}">
+                        </div>
+                        <div class="col-md-3 align-self-end">
+                            <button type="submit" class="btn btn-outline-danger w-100">Filtrele</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dışa Aktarma Butonları -->
+        <div class="mb-4">
+            <form method="POST" action="{{ url_for('periodic_maintenance.export_offers') }}" class="d-inline">
+                <input type="hidden" name="export_type" value="excel">
+                <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                <input type="hidden" name="machine_model_filter" value="{{ machine_model_filter }}">
+                <input type="hidden" name="offer_number_filter" value="{{ offer_number_filter }}">
+                <input type="hidden" name="customer_name_filter" value="{{ customer_name_filter }}">
+                <input type="hidden" name="date_from" value="{{ date_from }}">
+                <input type="hidden" name="date_to" value="{{ date_to }}">
+                <button type="submit" class="btn btn-outline-success me-2">Excel'e Aktar</button>
+            </form>
+            <form method="POST" action="{{ url_for('periodic_maintenance.export_offers') }}" class="d-inline">
+                <input type="hidden" name="export_type" value="pdf">
+                <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                <input type="hidden" name="machine_model_filter" value="{{ machine_model_filter }}">
+                <input type="hidden" name="offer_number_filter" value="{{ offer_number_filter }}">
+                <input type="hidden" name="customer_name_filter" value="{{ customer_name_filter }}">
+                <input type="hidden" name="date_from" value="{{ date_from }}">
+                <input type="hidden" name="date_to" value="{{ date_to }}">
+                <button type="submit" class="btn btn-outline-danger">PDF'e Aktar</button>
+            </form>
+        </div>
+
+        <!-- Toplu İşlem Formu -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('periodic_maintenance.bulk_update_offers') }}" id="bulk_action_form">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="action" class="form-label">İşlem</label>
+                            <select name="action" id="action" class="form-select">
+                                <option value="">İşlem Seçin</option>
+                                <option value="update_status">Durumu Güncelle</option>
+                                <option value="delete">Sil</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="new_status" class="form-label">Yeni Durum</label>
+                            <select name="new_status" id="new_status" class="form-select">
+                                <option value="">Yeni Durum Seçin</option>
+                                <option value="Teklif Verildi">Teklif Verildi</option>
+                                <option value="Teklif Kabul Edildi">Teklif Kabul Edildi</option>
+                                <option value="Teklif Kabul Edilmedi">Teklif Kabul Edilmedi</option>
+                                <option value="Parçalar Hazırlandı">Parçalar Hazırlandı</option>
+                                <option value="Parçalar Teslim Edildi">Parçalar Teslim Edildi</option>
+                                <option value="Servis Yola Çıktı">Servis Yola Çıktı</option>
+                                <option value="Ödeme Alındı">Ödeme Alındı</option>
+                                <option value="Faturalandırıldı">Faturalandırıldı</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 align-self-end">
+                            <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Bu işlemi yapmak istediğinizden emin misiniz?')">Uygula</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Teklif Tablosu -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <form id="bulk_form">
+                        <table id="offersTable" class="table table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="select_all" onclick="toggleSelectAll()"></th>
+                                    <th>Teklif Numarası</th>
+                                    <th>Makine Modeli</th>
+                                    <th>Makine Seri Numarası</th>
+                                    <th>Filtre Türü</th>
+                                    <th>Müşteri Adı Soyadı</th>
+                                    <th>Şirket Adı</th>
+                                    <th>Telefon</th>
+                                    <th>Teklif Veren</th>
+                                    <th>Toplam Tutar (TL)</th>
+                                    <th>Durum</th>
+                                    <th>Fatura Numarası</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for offer in offers %}
+                                <tr>
+                                    <td><input type="checkbox" name="offer_ids" value="{{ offer.id }}"></td>
+                                    <td>{{ offer.offer_number }}</td>
+                                    <td>{{ offer.machine_model }}</td>
+                                    <td>{{ offer.serial_number }}</td>
+                                    <td>{{ offer.filter_type }}</td>
+                                    <td>{{ offer.customer_first_name }} {{ offer.customer_last_name }}</td>
+                                    <td>{{ offer.company_name }}</td>
+                                    <td>{{ offer.phone }}</td>
+                                    <td>{{ offer.offeror_name }}</td>
+                                    <td>{{ offer.total_amount | format_currency }}</td>
+                                    <td>
+                                        <span class="status-label status-{{ offer.status | replace(' ', '-') | lower }}">
+                                            {{ offer.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if offer.status == 'Faturalandırıldı' %}
+                                            {% if offer.invoice_number %}
+                                                {{ offer.invoice_number }}
+                                            {% else %}
+                                                <form method="POST" action="{{ url_for('periodic_maintenance.invoice_offer', offer_id=offer.id) }}" class="d-inline">
+                                                    <input type="text" name="invoice_number" placeholder="Fatura No Girin" class="form-control d-inline-block w-auto" required>
+                                                    <button type="submit" class="btn btn-sm btn-outline-success ms-1">Kaydet</button>
+                                                </form>
+                                            {% endif %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- Genel İşlemler -->
+                                        <a href="{{ url_for('periodic_maintenance.edit_offer', offer_id=offer.id) }}" class="btn btn-sm btn-outline-primary me-1">Düzenle</a>
+                                        <a href="{{ url_for('periodic_maintenance.generate_offer_pdf', offer_id=offer.id) }}" class="btn btn-sm btn-outline-danger me-1">PDF İndir</a>
+                                        <a href="{{ url_for('periodic_maintenance.delete_offer', offer_id=offer.id) }}" class="btn btn-sm btn-outline-danger me-1" onclick="return confirm('Bu teklifi silmek istediğinizden emin misiniz?')">Sil</a>
+                                        <!-- Durum Bazlı İşlemler -->
+                                        {% if offer.status == 'Teklif Verildi' %}
+                                            <form method="POST" action="{{ url_for('periodic_maintenance.approve_offer', offer_id=offer.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-success me-1" onclick="return confirm('Teklifi onaylamak istediğinizden emin misiniz?')">Onayla</button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('periodic_maintenance.reject_offer', offer_id=offer.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger me-1" onclick="return confirm('Teklifi reddetmek istediğinizden emin misiniz?')">Reddet</button>
+                                            </form>
+                                        {% elif offer.status == 'Teklif Kabul Edildi' %}
+                                            <form method="POST" action="{{ url_for('periodic_maintenance.parts_prepared', offer_id=offer.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-info me-1" onclick="return confirm('Parçaların hazırlandığını onaylıyor musunuz?')">Parçalar Hazırlandı</button>
+                                            </form>
+                                        {% elif offer.status == 'Parçalar Hazırlandı' %}
+                                            <form method="POST" action="{{ url_for('periodic_maintenance.parts_delivered', offer_id=offer.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning me-1" onclick="return confirm('Parçaların teslim edildiğini onaylıyor musunuz?')">Parçalar Teslim Edildi</button>
+                                            </form>
+                                        {% elif offer.status == 'Parçalar Teslim Edildi' %}
+                                            <form method="POST" action="{{ url_for('periodic_maintenance.service_started', offer_id=offer.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary me-1" onclick="return confirm('Servisin yola çıktığını onaylıyor musunuz?')">Servis Yola Çıktı</button>
+                                            </form>
+                                        {% elif offer.status == 'Servis Yola Çıktı' and not offer.invoice_number %}
+                                            <form method="POST" action="{{ url_for('periodic_maintenance.invoice_offer', offer_id=offer.id) }}" class="d-inline">
+                                                <input type="text" name="invoice_number" placeholder="Fatura No Girin" class="form-control d-inline-block w-auto me-1" required>
+                                                <button type="submit" class="btn btn-sm btn-outline-success me-1">Faturalandır</button>
+                                            </form>
+                                        {% elif offer.status == 'Faturalandırıldı' %}
+                                            <form method="POST" action="{{ url_for('periodic_maintenance.payment_received', offer_id=offer.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-success me-1" onclick="return confirm('Ödemenin alındığını onaylıyor musunuz?')">Ödeme Alındı</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sayfalama -->
+        <div class="pagination mt-4 d-flex justify-content-center">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('periodic_maintenance.offer_list', page=pagination.prev_num, status_filter=status_filter, machine_model_filter=machine_model_filter, offer_number_filter=offer_number_filter, customer_name_filter=customer_name_filter, date_from=date_from, date_to=date_to) }}" class="btn btn-outline-danger me-2">Önceki</a>
+            {% endif %}
+            {% for p in pagination.iter_pages() %}
+                {% if p %}
+                    {% if p == pagination.page %}
+                        <button class="btn btn-danger me-1" disabled>{{ p }}</button>
+                    {% else %}
+                        <a href="{{ url_for('periodic_maintenance.offer_list', page=p, status_filter=status_filter, machine_model_filter=machine_model_filter, offer_number_filter=offer_number_filter, customer_name_filter=customer_name_filter, date_from=date_from, date_to=date_to) }}" class="btn btn-outline-danger me-1">{{ p }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="btn btn-outline-secondary me-1 disabled">...</span>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+                <a href="{{ url_for('periodic_maintenance.offer_list', page=pagination.next_num, status_filter=status_filter, machine_model_filter=machine_model_filter, offer_number_filter=offer_number_filter, customer_name_filter=customer_name_filter, date_from=date_from, date_to=date_to) }}" class="btn btn-outline-danger">Sonraki</a>
+            {% endif %}
+        </div>
+
+        <!-- Geri Dön Butonu -->
+        <div class="text-center mt-4">
+            <a href="{{ url_for('periodic_maintenance.periodic_maintenance') }}" class="btn btn-outline-danger">Geri Dön</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        padding: 2rem 0;
+        background: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        animation: slideInUp 1s ease;
+    }
+    .hero-section h1 {
+        font-size: 2.5rem;
+        color: #a52834;
+        font-weight: 600;
+    }
+    .hero-section p {
+        font-size: 1.1rem;
+        color: #555555;
+    }
+    @keyframes slideInUp {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .status-label {
+        padding: 0.2rem 0.5rem;
+        border-radius: 5px;
+        font-weight: 500;
+    }
+    .status-teklif-verildi {
+        background-color: #fff3cd;
+        color: #ffc107;
+    }
+    .status-teklif-kabul-edildi {
+        background-color: #d4edda;
+        color: #28a745;
+    }
+    .status-teklif-kabul-edilmedi {
+        background-color: #f8d7da;
+        color: #dc3545;
+    }
+    .status-parçalar-hazırlandı {
+        background-color: #e2e3e5;
+        color: #6c757d;
+    }
+    .status-parçalar-teslim-edildi {
+        background-color: #fefefe;
+        color: #343a40;
+    }
+    .status-servis-yola-çıktı {
+        background-color: #ffd8b1;
+        color: #ff851b;
+    }
+    .status-ödeme-alındı {
+        background-color: #cce5ff;
+        color: #007bff;
+    }
+    .status-faturalandırıldı {
+        background-color: #d4edda;
+        color: #28a745;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        $('#offersTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json"
+            },
+            "paging": false,  // Backend sayfalama kullanıldığı için DataTables sayfalamasını devre dışı bırak
+            "order": [[1, "desc"]]  // Teklif numarasına göre sıralama
+        });
+    });
+
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('input[name="offer_ids"]');
+        const selectAll = document.getElementById('select_all');
+        checkboxes.forEach(checkbox => checkbox.checked = selectAll.checked);
+    }
+
+    document.getElementById('bulk_action_form').addEventListener('submit', function(e) {
+        const form = document.getElementById('bulk_form');
+        const checkboxes = form.querySelectorAll('input[name="offer_ids"]:checked');
+        if (checkboxes.length === 0) {
+            alert('Lütfen en az bir teklif seçin!');
+            e.preventDefault();
+            return;
+        }
+        const bulkForm = this;
+        checkboxes.forEach(checkbox => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'offer_ids';
+            input.value = checkbox.value;
+            bulkForm.appendChild(input);
+        });
+    });
+</script>
+{% endblock %}

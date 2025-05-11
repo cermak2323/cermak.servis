@@ -1,0 +1,190 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+Teklif-Onay Sistemi - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-5 hero-section">
+            <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-3" style="height: 80px; width: auto;">
+            <h1 class="display-5 text-danger fw-bold">Teklif-Onay Sistemi</h1>
+            <p class="lead fw-light text-muted">Servis ve yedek parça tekliflerinizi yönetin</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Teklif Onaylama -->
+            <div class="col-md-6 card-item" style="animation-delay: 0.1s;">
+                <a href="{{ url_for('periodic_maintenance.offer_list', status_filter='Teklif Verildi') }}" class="text-decoration-none module-link">
+                    <div class="card h-100 animate-card position-relative">
+                        <div class="card-body text-center">
+                            <div class="icon-wrapper mb-3">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <h3 class="card-title fw-bold">Teklif Onaylama</h3>
+                            <p class="card-text text-muted">Bekleyen teklifleri görüntüle ve onayla</p>
+                        </div>
+                        <div class="card-loading">
+                            <span class="spinner-border" role="status" aria-hidden="true"></span>
+                            <span>Modüle Giriş Yapılıyor...</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!-- Yedek Parça Teklifleri -->
+            <div class="col-md-6 card-item" style="animation-delay: 0.2s;">
+                <a href="{{ url_for('offers.spare_parts_offers') }}" class="text-decoration-none module-link">
+                    <div class="card h-100 animate-card position-relative">
+                        <div class="card-body text-center">
+                            <div class="icon-wrapper mb-3">
+                                <i class="bi bi-gear"></i>
+                            </div>
+                            <h3 class="card-title fw-bold">Yedek Parça Teklifleri</h3>
+                            <p class="card-text text-muted">Yedek parça tekliflerini oluştur ve yönet</p>
+                        </div>
+                        <div class="card-loading">
+                            <span class="spinner-border" role="status" aria-hidden="true"></span>
+                            <span>Modüle Giriş Yapılıyor...</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        padding: 2rem 0;
+        background: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        animation: slideInUp 1s ease;
+    }
+    .hero-section h1 {
+        font-size: 2.5rem;
+        color: #a52834;
+        font-weight: 600;
+    }
+    .hero-section p {
+        font-size: 1.1rem;
+        color: #555555;
+    }
+    .animate-card {
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        background: #ffffff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .animate-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        border-color: #a52834;
+    }
+    .animate-card .card-title {
+        color: #333333;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    .animate-card:hover .card-title {
+        color: #a52834;
+    }
+    .animate-card .card-text {
+        color: #555555;
+        font-size: 0.95rem;
+    }
+    .animate-card .bi {
+        font-size: 2.5rem;
+        color: #a52834;
+        transition: transform 0.3s ease;
+    }
+    .animate-card:hover .bi {
+        transform: scale(1.1);
+    }
+    .icon-wrapper {
+        width: 50px;
+        height: 50px;
+        background: #f8d7da;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+    }
+    .animate-card:hover .icon-wrapper {
+        background: #a52834;
+    }
+    .animate-card:hover .icon-wrapper .bi {
+        color: #ffffff;
+    }
+    .card-item {
+        opacity: 0;
+        animation: slideInUp 0.5s ease forwards;
+    }
+    .card-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        border-radius: 10px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .card-loading.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .card-loading .spinner-border {
+        width: 2rem;
+        height: 2rem;
+        border-width: 4px;
+        border-color: #a52834;
+        border-right-color: transparent;
+    }
+    .card-loading span {
+        color: #a52834;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 0.75rem;
+    }
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    @keyframes slideInUp {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.module-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const card = this.querySelector('.animate-card');
+                const loadingDiv = card.querySelector('.card-loading');
+                const cardBody = card.querySelector('.card-body');
+                
+                loadingDiv.classList.add('active');
+                cardBody.style.opacity = '0';
+                
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

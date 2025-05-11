@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}
+Arıza Bildirimi - Makine ve Arıza Tipi Seçimi
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4 text-danger">Arıza Bildirimi - Makine ve Arıza Tipi Seçimi</h2>
+        <div class="card border-danger">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('faults.new_fault_report') }}">
+                    <div class="mb-3">
+                        <label for="machine_model" class="form-label">Makine Modeli</label>
+                        <select class="form-select" id="machine_model" name="machine_model" required>
+                            <option value="">Bir makine modeli seçin...</option>
+                            {% for model in machine_models %}
+                                <option value="{{ model }}">{{ model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fault_type" class="form-label">Arıza Tipi</label>
+                        <select class="form-select" id="fault_type" name="fault_type" required>
+                            <option value="">Bir arıza tipi seçin...</option>
+                            {% for fault_type in fault_types %}
+                                <option value="{{ fault_type }}">{{ fault_type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-danger">Devam Et</button>
+                        <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-danger ms-2">Geri Dön</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+
+{% extends "base.html" %}
+
+{% block title %}Duyuru Yönetimi - Cermak Servis Hizmetleri{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="text-center mb-4 text-danger">Duyuru Yönetimi</h2>
+        <div class="card mb-4 border-danger">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Duyuru Başlığı</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Duyuru İçeriği</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Duyuru Ekle</button>
+                </form>
+            </div>
+        </div>
+        <div class="card border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-3">Mevcut Duyurular</h5>
+                {% if announcements %}
+                    {% for announcement in announcements %}
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="alert-heading">{{ announcement.title }}</h6>
+                                <p>{{ announcement.content }}</p>
+                                <small class="text-muted">{{ announcement.created_at.strftime('%d-%m-%Y %H:%M') }}</small>
+                            </div>
+                            <form action="{{ url_for('auth.delete_announcement', announcement_id=announcement.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu duyuruyu silmek istediğinizden emin misiniz?')">Sil</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">Henüz duyuru bulunmamaktadır.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('auth.admin_panel') }}" class="btn btn-outline-danger">Geri Dön</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% from "macros.html" import is_file_exists %}
+
+{% block title %}
+Makine Bakım - {{ machine.serial_number }}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-5 hero-section">
+            <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto; animation: zoomIn 1s ease;">
+            <h1 class="display-4 text-danger fw-bold" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); animation: slideInFromLeft 1s ease;">Makine Bakım</h1>
+            <p class="lead fw-light text-muted" style="animation: fadeInUp 1.5s ease;">Makine: {{ machine.serial_number }} ({{ machine.model }})</p>
+            {% if qr_code and is_file_exists(qr_code.qr_code_url) %}
+                <img src="{{ url_for('static', filename=qr_code.qr_code_url) }}" alt="QR Code" class="mb-3" style="max-width: 200px;">
+                <p class="text-muted">Bu QR kodu taratarak bu sayfaya erişebilirsiniz.</p>
+            {% else %}
+                <p class="text-danger">QR kodu oluşturulamadı veya bulunamadı!</p>
+            {% endif %}
+        </div>
+
+        <h3 class="mb-4 text-danger">Bakım Kayıtları</h3>
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>İşlem Türü</th>
+                    <th>Tarih</th>
+                    <th>Açıklama</th>
+                    <th>Fatura</th>
+                    <th>Parça Resmi</th>
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                        <th>İşlemler</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                    <tr>
+                        <td>{{ record.action_type }}</td>
+                        <td>{{ record.action_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>{{ record.description or '-' }}</td>
+                        <td>
+                            {% if record.invoice_file %}
+                                <a href="{{ url_for('static', filename=record.invoice_file) }}" target="_blank">Görüntüle</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.part_image %}
+                                <a href="{{ url_for('static', filename=record.part_image) }}" target="_blank">Görüntüle</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                            <td>
+                                <a href="{{ url_for('edit_maintenance_record', machine_id=machine.id, record_id=record.id) }}" class="btn btn-sm btn-outline-warning">Düzenle</a>
+                                <a href="{{ url_for('delete_maintenance_record', machine_id=machine.id, record_id=record.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bu kaydı silmek istediğinize emin misiniz?')">Sil</a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if current_user.is_authenticated %}
+            <h3 class="mb-4 text-danger">Yeni Bakım Kaydı Ekle</h3>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="action_type" class="form-label">İşlem Türü</label>
+                    <select class="form-select" id="action_type" name="action_type" required>
+                        <option value="Bakım">Bakım</option>
+                        <option value="Parça Değişimi">Parça Değişimi</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Açıklama</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="invoice_file" class="form-label">Fatura (PDF)</label>
+                    <input type="file" class="form-control" id="invoice_file" name="invoice_file" accept=".pdf">
+                </div>
+                <div class="mb-3">
+                    <label for="part_image" class="form-label">Parça Resmi (JPEG/PNG)</label>
+                    <input type="file" class="form-control" id="part_image" name="part_image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-danger">Kaydet</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        padding: 2rem 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    @keyframes zoomIn {
+        0% { opacity: 0; transform: scale(0.5); }
+        50% { transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideInFromLeft {
+        0% { opacity: 0; transform: translateX(-60px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInUp {
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

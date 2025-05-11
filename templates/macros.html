@@ -1,0 +1,12 @@
+{% macro is_file_exists(filename) %}
+    {% if filename %}
+        {% set full_path = os.path.join('static', filename) %}
+        {% if os.path.exists(full_path) %}
+            True
+        {% else %}
+            False
+        {% endif %}
+    {% else %}
+        False
+    {% endif %}
+{% endmacro %}

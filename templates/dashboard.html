@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}
+Kontrol Paneli - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="text-center mb-5 hero-section">
+                <div class="hero-background"></div>
+                <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-3 hero-logo">
+                <h1 class="display-4 text-gradient fw-bold">Kontrol Paneli</h1>
+                <p class="lead text-muted">Cermak Servis Hizmetleri Yönetim Sistemi</p>
+            </div>
+
+            <div class="row g-4" id="cardContainer">
+                {% if current_user.permissions is not none and current_user.permissions.can_view_parts %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('parts.parts_view') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-gear"></i>
+                                </div>
+                                <h3>Parça Yönetimi</h3>
+                                <p>Parça envanterini görüntüle ve yönet</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_view_catalogs %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('catalogs.catalogs_view') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-book"></i>
+                                </div>
+                                <h3>Kataloglar</h3>
+                                <p>Teknik katalogları görüntüle</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_view_faults %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('faults.fault_search') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </div>
+                                <h3>Arıza Çözümleri</h3>
+                                <p>Sorununuz için çözümleri arayın veya arıza bildirin</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_add_solutions %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('faults.add_general_solution') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-tools"></i>
+                                </div>
+                                <h3>Genel Çözüm Ekle</h3>
+                                <p>Teknik servis çözümlerini ekleyin</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_view_maintenance %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('machines') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <img src="{{ url_for('static', filename='images/excavator.svg') }}" alt="Excavator Icon" style="width: 2.5rem; height: 2.5rem;">
+                                </div>
+                                <h3>Makine Bakım-Onarım Kayıtları</h3>
+                                <p>Makinelerin bakım ve onarım kayıtlarını yönet</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_view_warranties %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('warranties.warranties_view') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-shield-check"></i>
+                                </div>
+                                <h3>Garanti Yönetimi</h3>
+                                <p>Garanti kayıtlarını ve bilgilerini yönet</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_view_invoices %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('invoices.invoices_view') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-receipt"></i>
+                                </div>
+                                <h3>Fatura Yönetimi</h3>
+                                <p>Servis faturalarını paylaş ve yönet</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_view_periodic_maintenance %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('periodic_maintenance.periodic_maintenance') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                <h3>Periyodik Bakım</h3>
+                                <p>Bakım ve filtre fiyat bilgilerini görüntüle</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+
+
+                {% if current_user.permissions is not none and current_user.permissions.can_view_offers %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('periodic_maintenance.offer_list', status_filter='Teklif Verildi') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <h3>Teklif Onaylama</h3>
+                                <p>Bekleyen teklifleri görüntüle ve onayla</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('offers.offers_dashboard') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </div>
+                                <h3>Teklif Yönetimi</h3>
+                                <p>Tüm teklifleri görüntüle ve yönet</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if current_user.permissions is not none and current_user.permissions.can_view_contact %}
+                <div class="col-md-6 col-lg-4 card-item">
+                    <a href="{{ url_for('contact.contact_view') }}" class="text-decoration-none module-link">
+                        <div class="dashboard-card">
+                            <div class="card-glow"></div>
+                            <div class="card-content">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <h3>İletişim</h3>
+                                <p>Bizimle iletişime geçin</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #dc3545;
+        --secondary: #c82333;
+        --accent: #ff4d5a;
+        --surface: #ffffff;
+        --text: #343a40;
+    }
+
+    .dashboard-container {
+        padding: 2rem;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dc3545' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        min-height: 100vh;
+        position: relative;
+    }
+
+    .dashboard-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+        z-index: 0;
+    }
+
+    .hero-section {
+        position: relative;
+        padding: 3rem;
+        border-radius: 24px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(26,35,126,0.05), rgba(13,71,161,0.05));
+        z-index: 0;
+    }
+
+    .hero-logo {
+        position: relative;
+        height: 80px;
+        animation: floatAnimation 3s ease-in-out infinite;
+        z-index: 1;
+    }
+
+    .text-gradient {
+        background: linear-gradient(45deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-card {
+        position: relative;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        height: 100%;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        border: 1px solid rgba(220, 53, 69, 0.1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .dashboard-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 16px;
+        border: 2px solid transparent;
+        background: linear-gradient(45deg, var(--primary), var(--accent)) border-box;
+        -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: destination-out;
+        mask-composite: exclude;
+    }
+
+    .card-glow {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+            circle at center,
+            rgba(41,98,255,0.1) 0%,
+            rgba(41,98,255,0) 70%
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-card:hover .card-glow {
+        opacity: 1;
+    }
+
+    .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(45deg, var(--primary), var(--accent));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .icon-wrapper i {
+        color: white;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover .icon-wrapper {
+        transform: scale(1.1) rotate(10deg);
+    }
+
+    .dashboard-card h3 {
+        color: var(--text);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-card p {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    @keyframes floatAnimation {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .card-item {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card-item');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+
+    const links = document.querySelectorAll('.module-link');
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const card = this.querySelector('.dashboard-card');
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                window.location.href = this.href;
+            }, 300);
+        });
+    });
+});
+</script>
+{% endblock %}

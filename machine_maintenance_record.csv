@@ -1,0 +1,5 @@
+id,machine_id,action_type,action_date,description,invoice_file,part_image
+1,1,Bakým,2025-04-22 09:47:15.777317+03,Yað deðiþimi yapýldý.,,
+2,1,Parça Deðiþimi,2025-04-22 09:47:15.777321+03,Kepçe diþi deðiþtirildi.,,
+3,2,Bakým,2025-04-22 09:47:15.791391+03,Yað deðiþimi yapýldý.,,
+4,2,Parça Deðiþimi,2025-04-22 09:47:15.791395+03,Kepçe diþi deðiþtirildi.,,

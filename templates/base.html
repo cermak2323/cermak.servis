@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CERMAK SERVİS TEKNİK BİLGİ SİSTEMİ{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- PhotoSwipe CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.3/photoswipe.min.css" integrity="sha512-yx4dV2Mzh6fsNgjDbXn/v6mDhAZUqWq3rWF2Vtlr7nWse6p5x7cLxtvovGKB2f2r3m9V5wznUUl2GIjRYD7yqEg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <style>
+        body {
+            background: #f9f9f9;
+            font-family: 'Poppins', sans-serif;
+            color: #333333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .navbar {
+            background: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-bottom: 2px solid #a52834;
+            padding: 0.8rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand img {
+            height: 35px;
+            width: auto;
+            transition: transform 0.3s ease;
+        }
+        .navbar-brand:hover img {
+            transform: scale(1.1);
+        }
+        .nav-link {
+            color: #333333 !important;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #a52834 !important;
+            background: #f8d7da;
+            border-radius: 5px;
+        }
+        .dropdown-menu {
+            background: #ffffff;
+            border: 1px solid #a52834;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 0.5rem;
+        }
+        .dropdown-item {
+            color: #333333;
+            font-size: 0.9rem;
+            padding: 0.5rem 1.5rem;
+            border-bottom: 1px solid #f1f1f1;
+            transition: all 0.3s ease;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-item:hover {
+            background: #a52834;
+            color: #ffffff;
+        }
+        .container {
+            padding: 2.5rem 2rem;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            margin-top: 2rem;
+        }
+        .btn-outline-danger {
+            border-color: #a52834;
+            color: #a52834;
+            border-radius: 25px;
+            font-weight: 600;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-danger:hover {
+            background: #a52834;
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+        footer {
+            background: #f1f1f1;
+            padding: 2rem 0;
+            color: #555555;
+            border-top: 1px solid #dee2e6;
+        }
+        .footer-links a {
+            color: #555555;
+            font-size: 0.9rem;
+            margin: 0 1rem;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer-links a:hover {
+            color: #a52834;
+        }
+        .social-links a {
+            color: #555555;
+            font-size: 1.4rem;
+            margin: 0 0.8rem;
+            transition: all 0.3s ease;
+        }
+        .social-links a:hover {
+            color: #a52834;
+            transform: translateY(-3px);
+        }
+        /* Kart Yükleme Animasyonu */
+        .card-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .card-loading.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .card-loading .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-width: 3px;
+            border-color: #a52834;
+            border-right-color: transparent;
+        }
+        .card-loading span {
+            color: #a52834;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes slideInUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('auth.dashboard') }}">
+                <img src="{{ url_for('static', filename='cermak-logo.png') }}" alt="Cermak Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'auth.dashboard' %}active{% endif %}" href="{{ url_for('auth.dashboard') }}">Ana Sayfa</a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.permissions is not none and (current_user.permissions.can_view_parts or current_user.permissions.can_view_catalogs or current_user.permissions.can_view_faults or current_user.permissions.can_view_maintenance or current_user.permissions.can_view_warranty or current_user.permissions.can_view_accounting or current_user.permissions.can_view_periodic_maintenance) %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-tools me-1"></i> Servis Yönetimi
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+                                {% if current_user.permissions.can_view_parts %}
+                                <li><a class="dropdown-item" href="{{ url_for('parts.parts_view') }}"><i class="bi bi-gear me-2"></i> Yedek Parçalar</a></li>
+                                {% endif %}
+                                {% if current_user.permissions.can_view_catalogs %}
+                                <li><a class="dropdown-item" href="{{ url_for('catalogs.catalogs_view') }}"><i class="bi bi-book me-2"></i> Parça Katalogları</a></li>
+                                {% endif %}
+                                {% if current_user.permissions.can_view_faults %}
+                                <li><a class="dropdown-item" href="{{ url_for('faults.new_fault_report') }}"><i class="bi bi-exclamation-triangle me-2"></i> Arıza Kayıtları</a></li>
+                                {% endif %}
+                                {% if current_user.permissions.can_view_maintenance %}
+                                <li><a class="dropdown-item" href="{{ url_for('machines') }}"><i class="bi bi-wrench me-2"></i> Bakım Kayıtları</a></li>
+                                {% endif %}
+                                {% if current_user.permissions.can_view_warranty %}
+                                <li><a class="dropdown-item" href="{{ url_for('warranty.warranty_view') }}"><i class="bi bi-shield-check me-2"></i> Garanti İşlemleri</a></li>
+                                {% endif %}
+                                {% if current_user.permissions.can_view_accounting %}
+                                <li><a class="dropdown-item" href="{{ url_for('accounting.accounting_view') }}"><i class="bi bi-calculator me-2"></i> Muhasebe ve Fatura</a></li>
+                                {% endif %}
+                                {% if current_user.permissions.can_view_periodic_maintenance %}
+                                <li><a class="dropdown-item" href="{{ url_for('periodic_maintenance.periodic_maintenance') }}"><i class="bi bi-clock me-2"></i> Periyodik Bakım</a></li>
+                                {% endif %}
+                                {% if current_user.permissions.can_view_periodic_maintenance %}
+                                <li><a class="dropdown-item" href="{{ url_for('offers.offers_dashboard') }}"><i class="bi bi-file-earmark-text me-2"></i> Teklif-Onay Sistemi</a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                        {% if current_user.permissions is not none and current_user.permissions.can_view_contact %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'contact.contact_view' %}active{% endif %}" href="{{ url_for('contact.contact_view') }}"><i class="bi bi-envelope me-1"></i> İletişim</a>
+                        </li>
+                        {% endif %}
+                        {% if current_user.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'auth.admin_panel' %}active{% endif %}" href="{{ url_for('auth.admin_panel') }}"><i class="bi bi-shield-lock me-1"></i> Admin Paneli</a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="btn btn-outline-danger ms-2" href="{{ url_for('auth.logout') }}">Çıkış Yap</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Giriş Yap</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <footer class="bg-light text-center py-4">
+        <div class="container">
+            <p class="text-muted mb-2">© 2025 Cermak Servis Teknik Bilgi Sistemi. Tüm hakları saklıdır.</p>
+            <div class="social-links mb-3">
+                <a href="https://cerenmakina.com" target="_blank" class="me-3"><i class="bi bi-globe"></i></a>
+                <a href="#" target="_blank"><i class="bi bi-envelope"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="{{ url_for('contact.contact_view') }}" class="text-muted me-3">İletişim</a>
+                <a href="#" class="text-muted">Gizlilik Politikası</a>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- PhotoSwipe JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.3/photoswipe.min.js" integrity="sha512-Nj+ZA1S2Jkm/uR73r244vE+UlULzAwPkisLEAoUm0g9x7R7gB86N8W7G3/ZO4Urce2iL9vWNXfm4+rbByfx6dxg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.3/photoswipe-lightbox.min.js" integrity="sha512-K1b5uM5vUwtUNeXBcW1PBrpQ3xG69cE2eZ1SQ1jE7QJ4xWP8jFHK+u+C34WvL6X0qWAXp/94+CRyeJBNV68D0WQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const lightbox = new PhotoSwipeLightbox({
+                gallery: '#solution-gallery',
+                children: 'a',
+                pswpModule: PhotoSwipe
+            });
+            lightbox.init();
+        });
+    </script>
+</body>
+</html>
