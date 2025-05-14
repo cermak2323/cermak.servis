@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto;">
+        <h1 class="display-4 text-danger fw-bold">Makine Sorgulama ve Bakım Kayıtları</h1>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="GET" class="mb-0">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="serial_number" placeholder="Makine Seri Numarası" required>
+                            <button type="submit" class="btn btn-danger">Sorgula</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if machine %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Makine Bilgileri</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>Seri Numarası:</strong> {{ machine.serial_number }}</p>
+                            <p><strong>Model:</strong> {{ machine.model }}</p>
+                            <p><strong>Sahibi:</strong> {{ machine.owner_name }}</p>
+                            <p><strong>Adres:</strong> {{ machine.address }}</p>
+                            <p><strong>Sorumlu Servis:</strong> {{ machine.responsible_service }}</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            {% if qr_code %}
+                            <img src="{{ url_for('static', filename=qr_code.qr_code_url) }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if machine.delivery_photos and machine.delivery_photos != 'None' %}
+                    <div class="mt-4">
+                        <h4>Teslim Fotoğrafları</h4>
+                        <div class="row">
+                            {% for photo in machine.delivery_photos.split(',') if photo.strip() %}
+                            <div class="col-md-4 mb-3">
+                                <a href="{{ url_for('static', filename=photo.strip()) }}" target="_blank">
+                                    <img src="{{ url_for('static', filename=photo.strip()) }}" alt="Teslim Fotoğrafı" class="img-fluid">
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if machine.delivery_document and machine.delivery_document != 'None' %}
+                    <div class="mt-4">
+                        <h4>Teslim Belgesi</h4>
+                        <div class="mb-3">
+                            <a href="{{ url_for('static', filename=machine.delivery_document) }}" class="btn btn-danger" target="_blank">
+                                <i class="bi bi-file-earmark-pdf"></i> Teslim Belgesini Görüntüle
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if maintenance_records %}
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Bakım Kayıtları</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>İşlem Tipi</th>
+                                    <th>Açıklama</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in maintenance_records %}
+                                <tr>
+                                    <td>{{ record.action_date.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ record.action_type }}</td>
+                                    <td>{{ record.description }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">Bu makineye ait bakım kaydı bulunmamaktadır.</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

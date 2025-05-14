@@ -1,8 +1,8 @@
-"""add_new_permissions
+"""Add can_view_machines permission
 
-Revision ID: 990e8f5ae6cf
-Revises: f48f0a8538ae
-Create Date: 2025-05-08 14:26:11.020549
+Revision ID: e241720d7d8c
+Revises: 015ecffb17b5
+Create Date: 2025-05-13 18:59:37.773392
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '990e8f5ae6cf'
-down_revision = 'f48f0a8538ae'
+revision = 'e241720d7d8c'
+down_revision = '015ecffb17b5'
 branch_labels = None
 depends_on = None
 

@@ -315,7 +315,7 @@ def download_pdf():
 
         logger.debug(
             "FORM VERİLERİ: FIRST_NAME=%s, LAST_NAME=%s, COMPANY_NAME=%s, SERIAL_NUMBER=%s, PHONE=%s, OFFEROR_NAME=%s, FILTER_TYPE=%s, DISCOUNT_TYPE=%s, DISCOUNT_VALUE=%s",
-            first_name, last_name, company_name, serial_number, phone, offeror_name, filter_type, discount_type, discount_value
+            first_name, last_name, company_name, serial_number, phone, offeror_name, filter_type, discount_value
         )
 
         if not all([first_name, last_name, company_name, serial_number, phone, offeror_name]):
@@ -681,7 +681,8 @@ def download_pdf():
         table.items th:nth-child(1), table.items td:nth-child(1) {{ width: 5%; }}  /* SIRA NO */
         table.items th:nth-child(2), table.items td:nth-child(2) {{ width: 20%; }} /* PARÇA NO */
         table.itemsth:nth-child(3), table.items td:nth-child(3) {{ width: 35%; }} /* AÇIKLAMA */
-        table.items th:nth-child(4), table.items td:nth-child(4) {{ width: 5%; }}  /* ADET */
+        table.```python
+items th:nth-child(4), table.items td:nth-child(4) {{ width: 5%; }}  /* ADET */
         table.items th:nth-child5), table.items td:nth-child(5) {{ width: 15%; }} /* BİRİM FİYAT (TL) */
         table.items th:nth-child(6), table.items td:nth-child(6) {{ width: 20%; }} /* TOPLAM (TL) */
         table.totals {{ 
@@ -992,7 +993,7 @@ from flask_login import login_required, current_user
 @periodic_maintenance_bp.route("/offer_list", methods=["GET", "POST"])
 @login_required
 def offer_list():
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1059,7 +1060,7 @@ def offer_list():
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/approve", methods=["POST"])
 @login_required
 def approve_offer(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1079,7 +1080,7 @@ def approve_offer(offer_id):
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/reject", methods=["POST"])
 @login_required
 def reject_offer(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1099,7 +1100,7 @@ def reject_offer(offer_id):
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/parts_prepared", methods=["POST"])
 @login_required
 def parts_prepared(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1118,7 +1119,7 @@ def parts_prepared(offer_id):
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/parts_delivered", methods=["POST"])
 @login_required
 def parts_delivered(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1137,7 +1138,7 @@ def parts_delivered(offer_id):
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/service_started", methods=["POST"])
 @login_required
 def service_started(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1156,7 +1157,7 @@ def service_started(offer_id):
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/invoice", methods=["POST"])
 @login_required
 def invoice_offer(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1181,7 +1182,7 @@ def invoice_offer(offer_id):
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/payment_received", methods=["POST"])
 @login_required
 def payment_received(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1200,7 +1201,7 @@ def payment_received(offer_id):
 @periodic_maintenance_bp.route("/bulk_update_offers", methods=["POST"])
 @login_required
 def bulk_update_offers():
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1250,7 +1251,7 @@ def bulk_update_offers():
 @periodic_maintenance_bp.route("/export_offers", methods=["POST"])
 @login_required
 def export_offers():
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1337,7 +1338,7 @@ def export_offers():
 @periodic_maintenance_bp.route("/edit_offer/<int:offer_id>", methods=["GET", "POST"])
 @login_required
 def edit_offer(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1401,7 +1402,7 @@ def edit_offer(offer_id):
 @periodic_maintenance_bp.route("/generate_offer_pdf/<int:offer_id>")
 @login_required
 def generate_offer_pdf(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 
@@ -1415,7 +1416,7 @@ def generate_offer_pdf(offer_id):
 @periodic_maintenance_bp.route("/delete_offer/<int:offer_id>")
 @login_required
 def delete_offer(offer_id):
-    if not current_user.permissions.can_view_periodic_maintenance:
+    if not (current_user.role == 'admin' or (current_user.permissions and (current_user.permissions.can_view_offers or current_user.permissions.can_view_periodic_maintenance))):
         flash("Bu modüle erişim yetkiniz yok!", "danger")
         return redirect(url_for("auth.dashboard"))
 

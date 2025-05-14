@@ -12,6 +12,19 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <style>
+        .dropdown-submenu {
+            position: absolute;
+            left: 100%;
+            top: 0;
+        }
+
+        @media (max-width: 991.98px) {
+            .dropdown-submenu {
+                position: static;
+                margin-left: 1rem;
+            }
+        }
+
         body {
             background: #f9f9f9;
             font-family: 'Poppins', sans-serif;
@@ -194,8 +207,11 @@
                                 {% if current_user.permissions.can_view_faults %}
                                 <li><a class="dropdown-item" href="{{ url_for('faults.new_fault_report') }}"><i class="bi bi-exclamation-triangle me-2"></i> Arıza Kayıtları</a></li>
                                 {% endif %}
+                                {% if current_user.permissions.can_view_machines %}
+                                <li><a class="dropdown-item" href="{{ url_for('machines.index') }}"><i class="bi bi-tools me-2"></i> Makine Yönetimi</a></li>
+                                {% endif %}
                                 {% if current_user.permissions.can_view_maintenance %}
-                                <li><a class="dropdown-item" href="{{ url_for('machines') }}"><i class="bi bi-wrench me-2"></i> Bakım Kayıtları</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('machine_registration') }}"><i class="bi bi-wrench me-2"></i> Bakım Kayıtları</a></li>
                                 {% endif %}
                                 {% if current_user.permissions.can_view_warranty %}
                                 <li><a class="dropdown-item" href="{{ url_for('warranty.warranty_view') }}"><i class="bi bi-shield-check me-2"></i> Garanti İşlemleri</a></li>
@@ -204,10 +220,15 @@
                                 <li><a class="dropdown-item" href="{{ url_for('accounting.accounting_view') }}"><i class="bi bi-calculator me-2"></i> Muhasebe ve Fatura</a></li>
                                 {% endif %}
                                 {% if current_user.permissions.can_view_periodic_maintenance %}
-                                <li><a class="dropdown-item" href="{{ url_for('periodic_maintenance.periodic_maintenance') }}"><i class="bi bi-clock me-2"></i> Periyodik Bakım</a></li>
-                                {% endif %}
-                                {% if current_user.permissions.can_view_periodic_maintenance %}
-                                <li><a class="dropdown-item" href="{{ url_for('offers.offers_dashboard') }}"><i class="bi bi-file-earmark-text me-2"></i> Teklif-Onay Sistemi</a></li>
+                                <li class="dropdown">
+                                    <a class="dropdown-item dropdown-toggle" href="#" id="offerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-file-earmark-text me-2"></i> Teklif Oluşturma ve Onaylama Sistemi
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-submenu" aria-labelledby="offerDropdown">
+                                        <li><a class="dropdown-item" href="{{ url_for('periodic_maintenance.periodic_maintenance') }}"><i class="bi bi-wrench me-2"></i> Periyodik Bakım</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('offers.offers_dashboard') }}"><i class="bi bi-file-earmark-check me-2"></i> Teklif Onay</a></li>
+                                    </ul>
+                                </li>
                                 {% endif %}
                             </ul>
                         </li>
@@ -222,6 +243,9 @@
                             <a class="nav-link {% if request.endpoint == 'auth.admin_panel' %}active{% endif %}" href="{{ url_for('auth.admin_panel') }}"><i class="bi bi-shield-lock me-1"></i> Admin Paneli</a>
                         </li>
                         {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.change_password') }}">Şifre Değiştir</a>
+                        </li>
                         <li class="nav-item">
                             <a class="btn btn-outline-danger ms-2" href="{{ url_for('auth.logout') }}">Çıkış Yap</a>
                         </li>
@@ -282,5 +306,8 @@
             lightbox.init();
         });
     </script>
+{% if current_user.is_authenticated %}
+    <script src="{{ url_for('static', filename='js/session.js') }}"></script>
+    {% endif %}
 </body>
 </html>

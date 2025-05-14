@@ -1,8 +1,8 @@
-"""initial_migration
+"""new_migrarte
 
-Revision ID: f48f0a8538ae
-Revises: 
-Create Date: 2025-05-08 14:11:50.729723
+Revision ID: c29bb578671d
+Revises: e241720d7d8c
+Create Date: 2025-05-14 11:22:36.940763
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f48f0a8538ae'
-down_revision = None
+revision = 'c29bb578671d'
+down_revision = 'e241720d7d8c'
 branch_labels = None
 depends_on = None
 
@@ -29,7 +29,8 @@ def upgrade():
         batch_op.drop_index('idx_periodic_maintenance_model')
 
     with op.batch_alter_table('permission', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('can_view_offers', sa.Boolean(), nullable=True))
+        batch_op.add_column(sa.Column('can_approve_offers', sa.Boolean(), nullable=True))
+        batch_op.add_column(sa.Column('can_reject_offers', sa.Boolean(), nullable=True))
 
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.drop_index('idx_user_username')
@@ -43,7 +44,8 @@ def downgrade():
         batch_op.create_index('idx_user_username', ['username'], unique=False)
 
     with op.batch_alter_table('permission', schema=None) as batch_op:
-        batch_op.drop_column('can_view_offers')
+        batch_op.drop_column('can_reject_offers')
+        batch_op.drop_column('can_approve_offers')
 
     with op.batch_alter_table('periodic_maintenance', schema=None) as batch_op:
         batch_op.create_index('idx_periodic_maintenance_model', ['machine_model'], unique=False)

@@ -1,0 +1,106 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto;">
+        <h1 class="display-4 text-danger fw-bold">Yeni Makine Kayıt</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="model" class="form-label">Makine Modeli</label>
+                            <select class="form-control" id="model" name="model" required>
+                                <option value="">Makine modelini seçin</option>
+                                <option value="TB210R">TB210R</option>
+                                <option value="TB215R">TB215R</option>
+                                <option value="TB216">TB216</option>
+                                <option value="TB217R">TB217R</option>
+                                <option value="TB325">TB325</option>
+                                <option value="TB235-2">TB235-2</option>
+                                <option value="TB240-2">TB240-2</option>
+                                <option value="TB260-2">TB260-2</option>
+                                <option value="TB290-2">TB290-2</option>
+                                <option value="TL8R-2">TL8R-2</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="serial_number" class="form-label">Seri Numarası</label>
+                            <input type="text" class="form-control" id="serial_number" name="serial_number" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="owner_name" class="form-label">Makine Alıcısı</label>
+                            <input type="text" class="form-control" id="owner_name" name="owner_name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Adres</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="responsible_service" class="form-label">Yetkili Servis</label>
+                            <select class="form-control" id="responsible_service" name="responsible_service" required>
+                                <option value="">Yetkili servisi seçin</option>
+                                <option value="MERTSAN MAKİNA - ADANA">MERTSAN MAKİNA - ADANA</option>
+                                <option value="YETKİN MAKİNA - ALANYA">YETKİN MAKİNA - ALANYA</option>
+                                <option value="EMRE MAKİNA - ANKARA">EMRE MAKİNA - ANKARA</option>
+                                <option value="ENERMAK İŞ MAKİNALARI - ANKARA">ENERMAK İŞ MAKİNALARI - ANKARA</option>
+                                <option value="İŞ-MAK HİDROLİK - AYDIN">İŞ-MAK HİDROLİK - AYDIN</option>
+                                <option value="CAN İŞ-MAK MAKİNELERİ - BALIKESİR">CAN İŞ-MAK MAKİNELERİ - BALIKESİR</option>
+                                <option value="CAN KARDEŞLER - BOLU">CAN KARDEŞLER - BOLU</option>
+                                <option value="IŞIK MAKİNA - BURSA">IŞIK MAKİNA - BURSA</option>
+                                <option value="ÇEKİÇ İŞ MAKİNALARI - BURSA">ÇEKİÇ İŞ MAKİNALARI - BURSA</option>
+                                <option value="UĞUR MAKİNA - ÇORLU">UĞUR MAKİNA - ÇORLU</option>
+                                <option value="HÜSNÜOĞULLARI İŞ MAK. - ÇORUM">HÜSNÜOĞULLARI İŞ MAK. - ÇORUM</option>
+                                <option value="RİMSAN MAKİNA - DİYARBAKIR">RİMSAN MAKİNA - DİYARBAKIR</option>
+                                <option value="ÖZKAN KAYALAR - ELAZIĞ">ÖZKAN KAYALAR - ELAZIĞ</option>
+                                <option value="PALANDÖKEN MAKİNA - ERZURUM">PALANDÖKEN MAKİNA - ERZURUM</option>
+                                <option value="ANTEP İŞ MAKİNA - GAZİANTEP">ANTEP İŞ MAKİNA - GAZİANTEP</option>
+                                <option value="TAŞARLAR TAŞIMACILIK - HATAY">TAŞARLAR TAŞIMACILIK - HATAY</option>
+                                <option value="ÖZHAN HİDROLİK - İZMİR">ÖZHAN HİDROLİK - İZMİR</option>
+                                <option value="HİLAL OTO ELEKTRİK - KASTAMONU">HİLAL OTO ELEKTRİK - KASTAMONU</option>
+                                <option value="ÖZ DEDELİN İŞ MAKİNALARI - KAYSERİ">ÖZ DEDELİN İŞ MAKİNALARI - KAYSERİ</option>
+                                <option value="İLKER İŞ MAKİNALARI - MALATYA">İLKER İŞ MAKİNALARI - MALATYA</option>
+                                <option value="ÜSTÜN MAKİNA - KAHRAMANMARAŞ">ÜSTÜN MAKİNA - KAHRAMANMARAŞ</option>
+                                <option value="GÜÇ MAK İŞ MAKİNALARI - MERSİN">GÜÇ MAK İŞ MAKİNALARI - MERSİN</option>
+                                <option value="ÜMİT MAKİNA - MERSİN">ÜMİT MAKİNA - MERSİN</option>
+                                <option value="TİTİZ İŞ MAKİNALARI - ORDU">TİTİZ İŞ MAKİNALARI - ORDU</option>
+                                <option value="FURKAN MAKİNA - SAKARYA">FURKAN MAKİNA - SAKARYA</option>
+                                <option value="UZMAN İŞ MAKİNA - SAMSUN">UZMAN İŞ MAKİNA - SAMSUN</option>
+                                <option value="GÜVEN İŞ MAKİNALARI - TRABZON">GÜVEN İŞ MAKİNALARI - TRABZON</option>
+                                <option value="PRESTİJ MAKİNA - YALOVA">PRESTİJ MAKİNA - YALOVA</option>
+                                <option value="HASAN BİLMEZ - ZONGULDAK">HASAN BİLMEZ - ZONGULDAK</option>
+                                <option value="DEMİRLİ İŞ MAKİNELERİ - DENİZLİ">DEMİRLİ İŞ MAKİNELERİ - DENİZLİ</option>
+                                <option value="MET-İŞ TİCARET - EDİRNE">MET-İŞ TİCARET - EDİRNE</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="delivery_photos" class="form-label">Teslim Fotoğrafları</label>
+                            <input type="file" class="form-control" id="delivery_photos" name="delivery_photos" multiple accept="image/*" required>
+                            <small class="text-muted">Makinenin teslim öncesi durumunu gösteren fotoğraflar</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="delivery_document" class="form-label">Teslim Belgesi</label>
+                            <input type="file" class="form-control" id="delivery_document" name="delivery_document" accept=".pdf,.doc,.docx" required>
+                            <small class="text-muted">Makine teslim belgesi</small>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-danger btn-lg">Makine Kaydet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

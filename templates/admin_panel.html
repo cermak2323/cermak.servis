@@ -28,7 +28,12 @@ Admin Paneli - Cermak Servis Hizmetleri
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.role }}</td>
                                 <td>
-                                    <a href="{{ url_for('auth.edit_user', user_id=user.id) }}" class="btn btn-sm btn-danger">Düzenle</a>
+                                    <a href="{{ url_for('auth.edit_user', user_id=user.id) }}" class="btn btn-sm btn-danger me-2">Düzenle</a>
+                                    {% if user.username != 'admin' %}
+                                    <form action="{{ url_for('auth.delete_user', user_id=user.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                                    </form>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

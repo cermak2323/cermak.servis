@@ -8,8 +8,13 @@ from werkzeug.utils import secure_filename
 
 faults_bp = Blueprint('faults', __name__)
 
-MACHINE_MODELS = ['TB215R', 'TB216', 'TB250', 'TB260']  # Gerçek modellerini ekle
-FAULT_TYPES = ['Mekanik', 'Hidrolik', 'Elektrik']  # Gerçek tiplerini ekle
+@faults_bp.route('/management')
+@login_required
+def fault_management():
+    if not hasattr(current_user, 'permissions') or not current_user.permissions.can_view_faults:
+        flash('Bu sayfaya erişim yetkiniz yok.', 'danger')
+        return redirect(url_for('auth.dashboard'))
+    return render_template('fault_management.html')
 
 @faults_bp.route('/new', methods=['GET', 'POST'])
 @login_required
@@ -61,6 +66,9 @@ def new_fault_report():
         flash('Arıza kaydı başarıyla oluşturuldu!', 'success')
         return redirect(url_for('auth.dashboard'))
     return render_template('new_fault_report.html', machine_models=MACHINE_MODELS, fault_types=FAULT_TYPES)
+
+MACHINE_MODELS = ['TB215R', 'TB216', 'TB250', 'TB260']  # Gerçek modellerini ekle
+FAULT_TYPES = ['Mekanik', 'Hidrolik', 'Elektrik']  # Gerçek tiplerini ekle
 
 @faults_bp.route('/delete_solution/<int:solution_id>', methods=['POST'])
 @login_required

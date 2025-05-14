@@ -1,115 +1,65 @@
+
 {% extends "base.html" %}
 
-{% block title %}
-Makine Arama
-{% endblock %}
+{% block title %}Makine Kayıt Ekleme ve Sorgulama Sistemi{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="text-center mb-5 hero-section">
-            <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto; animation: zoomIn 1s ease;">
-            <h1 class="display-4 text-danger fw-bold" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); animation: slideInFromLeft 1s ease;">Makine Arama</h1>
-            <p class="lead fw-light text-muted" style="animation: fadeInUp 1.5s ease;">Makine seri numarasını girerek kayıtları görüntüleyin.</p>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Makine Kayıt Ekleme ve Sorgulama Sistemi</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-search display-4 text-danger"></i>
+                    <h5 class="card-title mt-3">Makine Sorgulama</h5>
+                    <p class="card-text">Makine bilgilerini sorgulayın ve görüntüleyin.</p>
+                    <a href="{{ url_for('machines.machine_search') }}" class="btn btn-danger">Makine Sorgula</a>
+                </div>
+            </div>
         </div>
 
-        <!-- Arama Formu -->
-        <form method="GET" action="{{ url_for('machines') }}" class="mb-5">
-            <div class="input-group">
-                <input type="text" class="form-control" name="serial_number" placeholder="Makine Seri Numarası (ör. SN12345)" value="{{ request.args.get('serial_number', '') }}">
-                <button type="submit" class="btn btn-danger">Ara</button>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-plus-circle display-4 text-danger"></i>
+                    <h5 class="card-title mt-3">Yeni Makine Kaydı</h5>
+                    <p class="card-text">Yeni makine kaydı oluşturun.</p>
+                    <a href="{{ url_for('machines.machine_registration') }}" class="btn btn-danger">Makine Ekle</a>
+                </div>
             </div>
-        </form>
+        </div>
 
-        <!-- Arama Sonuçları -->
-        {% if machine %}
-            <h3 class="mb-4 text-danger">Makine Bilgileri</h3>
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Seri Numarası</th>
-                        <th>Model</th>
-                        <th>Sahip Adı</th>
-                        <th>Adres</th>
-                        <th>Sorumlu Servis</th>
-                        <th>QR Kod</th>
-                        <th>İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ machine.serial_number }}</td>
-                        <td>{{ machine.model }}</td>
-                        <td>{{ machine.owner_name or '-' }}</td>
-                        <td>{{ machine.address or '-' }}</td>
-                        <td>{{ machine.responsible_service or '-' }}</td>
-                        <td>
-                            {% if machine.qr_code_url and is_file_exists(machine.qr_code_url) %}
-                                <img src="{{ url_for('static', filename=machine.qr_code_url) }}" alt="QR Code" style="max-width: 100px;">
-                            {% else %}
-                                <span class="text-danger">QR Kod Yok</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ url_for('machine_maintenance', machine_id=machine.id) }}" class="btn btn-sm btn-outline-primary">Bakım Kayıtları</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        {% elif request.args.get('serial_number') %}
-            <div class="alert alert-danger" role="alert">
-                "{{ request.args.get('serial_number') }}" seri numarasına sahip bir makine bulunamadı!
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-wrench display-4 text-danger"></i>
+                    <h5 class="card-title mt-3">Bakım-Onarım Kayıt</h5>
+                    <p class="card-text">Makine bakım ve onarım kaydı ekleyin.</p>
+                    <a href="{{ url_for('machines.machine_maintenance', machine_id=0) }}" class="btn btn-danger">Bakım Kaydı Ekle</a>
+                </div>
             </div>
-        {% endif %}
-
-        <!-- Yeni Makine Ekleme Formu -->
-        <h3 class="mb-4 text-danger">Yeni Makine Ekle</h3>
-        <form method="POST">
-            <div class="mb-3">
-                <label for="serial_number" class="form-label">Seri Numarası</label>
-                <input type="text" class="form-control" id="serial_number" name="serial_number" required>
-            </div>
-            <div class="mb-3">
-                <label for="model" class="form-label">Model</label>
-                <input type="text" class="form-control" id="model" name="model" required>
-            </div>
-            <div class="mb-3">
-                <label for="owner_name" class="form-label">Sahip Adı</label>
-                <input type="text" class="form-control" id="owner_name" name="owner_name">
-            </div>
-            <div class="mb-3">
-                <label for="address" class="form-label">Adres</label>
-                <input type="text" class="form-control" id="address" name="address">
-            </div>
-            <div class="mb-3">
-                <label for="responsible_service" class="form-label">Sorumlu Servis</label>
-                <input type="text" class="form-control" id="responsible_service" name="responsible_service">
-            </div>
-            <button type="submit" class="btn btn-danger">Makine Ekle</button>
-        </form>
+        </div>
     </div>
 </div>
 
 <style>
-    .hero-section {
-        padding: 2rem 0;
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 20px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    }
+.card {
+    transition: transform 0.2s;
+    border: none;
+    border-radius: 15px;
+}
 
-    @keyframes zoomIn {
-        0% { opacity: 0; transform: scale(0.5); }
-        50% { transform: scale(1.1); }
-        100% { opacity: 1; transform: scale(1); }
-    }
-    @keyframes slideInFromLeft {
-        0% { opacity: 0; transform: translateX(-60px); }
-        100% { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes fadeInUp {
-        0% { opacity: 0; transform: translateY(30px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.btn-danger {
+    border-radius: 25px;
+    padding: 8px 25px;
+}
+
+.display-4 {
+    font-size: 3rem;
+}
 </style>
 {% endblock %}

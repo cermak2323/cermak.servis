@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import User, Permission, Announcement # Announcement model added
 from database import db
 from forms import CreateUserForm
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 auth = Blueprint('auth', __name__)
 
@@ -21,8 +21,9 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
-            login_user(user)
-            flash(f'Hoş geldiniz, {username}!', 'success')  # Kişiselleştirilmiş mesaj
+            remember = True if request.form.get('remember') else False
+            login_user(user, remember=remember, duration=timedelta(days=30))
+            flash(f'Hoş geldiniz, {username}!', 'success')
             return redirect(url_for('auth.dashboard'))
         else:
             flash('Kullanıcı adı veya şifre yanlış.', 'danger')
@@ -85,7 +86,10 @@ def logout():
 @auth.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    return render_template('dashboard.html', current_user=current_user)
 
 @auth.route('/admin_panel')
 @login_required
@@ -96,10 +100,35 @@ def admin_panel():
     users = User.query.all()
     return render_template('admin_panel.html', users=users)
 
+@auth.route('/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    if current_user.role != 'admin':
+        flash('Bu işlemi yapma yetkiniz yok.', 'danger')
+        return redirect(url_for('auth.dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    if user.username == 'admin':
+        flash('Admin kullanıcısı silinemez.', 'danger')
+        return redirect(url_for('auth.admin_panel'))
+    
+    # İlişkili izinleri sil
+    if user.permissions:
+        db.session.delete(user.permissions)
+    
+    # Kullanıcıyı sil
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash('Kullanıcı başarıyla silindi.', 'success')
+    return redirect(url_for('auth.admin_panel'))
+
 @auth.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def edit_user(user_id):
-    if current_user.role != 'admin':
+    if not current_user.is_authenticated or current_user.role != 'admin':
+        flash('Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.', 'danger')
+        return redirect(url_for('auth.login'))
         flash('Bu işlemi yapma yetkiniz yok.', 'danger')
         return redirect(url_for('auth.dashboard'))
     user = User.query.get_or_404(user_id)
@@ -119,6 +148,7 @@ def edit_user(user_id):
         if password:
             user.password = generate_password_hash(password, method='pbkdf2:sha256')
         user.role = request.form.get('role')
+        permission.can_view_machines = 'can_view_machines' in request.form
         permission.can_view_parts = 'can_view_parts' in request.form
         permission.can_edit_parts = 'can_edit_parts' in request.form
         permission.can_view_faults = 'can_view_faults' in request.form
@@ -128,9 +158,15 @@ def edit_user(user_id):
         permission.can_edit_maintenance = 'can_edit_maintenance' in request.form
         permission.can_view_contact = 'can_view_contact' in request.form
         permission.can_view_purchase_prices = 'can_view_purchase_prices' in request.form
+        # Teklif yetkileri
         permission.can_view_offers = 'can_view_offers' in request.form
-        permission.can_view_admin_panel = 'can_view_admin_panel' in request.form
         permission.can_create_offers = 'can_create_offers' in request.form
+        permission.can_approve_offers = 'can_approve_offers' in request.form
+        permission.can_reject_offers = 'can_reject_offers' in request.form
+        permission.can_view_periodic_maintenance = 'can_view_periodic_maintenance' in request.form
+        
+        # Diğer yetkiler
+        permission.can_view_admin_panel = 'can_view_admin_panel' in request.form
         permission.can_upload_excel = 'can_upload_excel' in request.form
         db.session.commit()
         flash('Kullanıcı bilgileri ve yetkiler güncellendi.', 'success')
@@ -176,3 +212,26 @@ def create_user():
         return redirect(url_for('auth.admin_panel'))
     
     return render_template('create_user.html', form=form)
+
+@auth.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not check_password_hash(current_user.password, current_password):
+            flash('Mevcut şifre yanlış.', 'danger')
+            return redirect(url_for('auth.change_password'))
+            
+        if new_password != confirm_password:
+            flash('Yeni şifreler eşleşmiyor.', 'danger')
+            return redirect(url_for('auth.change_password'))
+            
+        current_user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
+        db.session.commit()
+        flash('Şifreniz başarıyla değiştirildi.', 'success')
+        return redirect(url_for('auth.dashboard'))
+        
+    return render_template('change_password.html')

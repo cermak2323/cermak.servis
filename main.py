@@ -3,12 +3,13 @@ import os
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
+from models import Permission, User
 from flask import Flask, redirect, url_for, render_template, request, flash
 from flask_login import LoginManager, current_user, login_required
 from flask_migrate import Migrate
-from flask_mail import Mail, Message  # Flask-Mail'i ekledik
+from flask_mail import Mail
 from database import db, init_db
-from models import User, Part, Catalog, CatalogItem, Fault, Machine, MaintenanceRecord, MachineMaintenanceRecord, QRCode, Permission, Warranty, Invoice, PeriodicMaintenance, Offer
+from models import User, Machine, MachineMaintenanceRecord, QRCode
 from auth.routes import auth
 from parts.routes import parts_bp
 from catalogs.routes import catalogs_bp
@@ -19,16 +20,14 @@ from warranty.routes import warranty_bp
 from accounting.routes import accounting_bp
 from periodic_maintenance.routes import periodic_maintenance_bp
 from offers.routes import offers
-from werkzeug.security import generate_password_hash
-import os
-import qrcode
-from datetime import datetime, timezone
+from machines.routes import machines
 from werkzeug.utils import secure_filename
-from utils import exchange_rates, fetch_exchange_rates, scheduler, logger, check_and_install_requirements
+from utils import exchange_rates, fetch_exchange_rates, scheduler, logger
+from datetime import datetime, timezone
+import qrcode
+from werkzeug.security import generate_password_hash
 from sqlalchemy.sql import text
-import sys
-sys.path.append('src')
-from accounting.routes import accounting_bp
+
 
 # Logging yapılandırması
 logger.info("Uygulama başlatılıyor...")
@@ -84,6 +83,7 @@ app.register_blueprint(warranty_bp, url_prefix='/warranty')
 app.register_blueprint(accounting_bp, url_prefix='/accounting')
 app.register_blueprint(periodic_maintenance_bp, url_prefix='/periodic_maintenance')
 app.register_blueprint(offers, url_prefix='/offers')
+app.register_blueprint(machines, url_prefix='/machines')
 
 # Kök rota
 @app.route('/')
@@ -112,13 +112,14 @@ def create_users():
             "can_view_faults": True,
             "can_add_solutions": False,
             "can_view_catalogs": False,
-            "can_view_maintenance": False,
-            "can_edit_maintenance": False,
+            "can_view_maintenance": True,
+            "can_edit_maintenance": True,
             "can_view_contact": True,
             "can_view_purchase_prices": False,
             "can_view_warranty": False,
             "can_view_accounting": False,
-            "can_view_periodic_maintenance": False
+            "can_view_periodic_maintenance": False,
+            "can_view_machines": True
         }
 
         # Mühendis varsayılan yetkileri
@@ -297,9 +298,9 @@ def assign_qr_code_to_machine(machine_id):
             return None
 
 # Makine Listesi ve Yeni Makine Ekleme
-@app.route('/machines/', methods=['GET', 'POST'])
-@login_required
-def machines():
+
+@app.route('/machine-registration', methods=['GET', 'POST'])
+def machine_registration():
     machine = None
     if request.method == 'GET' and 'serial_number' in request.args:
         serial_number = request.args.get('serial_number')
@@ -312,7 +313,7 @@ def machines():
         responsible_service = request.form.get('responsible_service')
         if Machine.query.filter_by(serial_number=serial_number).first():
             flash('Bu seri numarası zaten kayıtlı!', 'danger')
-            return redirect(url_for('machines'))
+            return redirect(url_for('machines.machine_registration'))
         new_machine = Machine(
             serial_number=serial_number,
             model=model,
@@ -327,7 +328,7 @@ def machines():
             flash('Makine başarıyla eklendi ve QR kod atandı!', 'success')
         else:
             flash('Makine eklendi, ancak QR kod atanamadı!', 'warning')
-        return redirect(url_for('machines'))
+        return redirect(url_for('machines.machine_registration'))
     return render_template('machines.html', machine=machine)
 
 # Makine Bakım Sayfası
@@ -632,8 +633,7 @@ def initialize_database():
             if admin_user:
                 machine = Machine.query.filter_by(serial_number='SN12345').first()
                 if machine and not Warranty.query.filter_by(serial_number='SN12345').first():
-                    warranty = Warranty(
-                        machine_id=machine.id,
+                    warranty = Warranty(                        machine_id=machine.id,
                         serial_number='SN12345',
                         start_date=datetime.now(timezone.utc),
                         end_date=datetime.now(timezone.utc).replace(year=datetime.now(timezone.utc).year + 2),
@@ -740,7 +740,6 @@ def initialize_database():
             raise
 
 if __name__ == '__main__':
-    check_and_install_requirements()
     with app.app_context():
         initialize_database()
         fetch_exchange_rates()

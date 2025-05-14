@@ -9,7 +9,7 @@ from parts.routes import exchange_rates
 catalogs_bp = Blueprint('catalogs', __name__)
 
 # Dosya yükleme için ayarlar
-UPLOAD_FOLDER = 'static/uploads'
+UPLOAD_FOLDER = '/var/data/uploads'
 ALLOWED_EXTENSIONS = {'pdf'}
 
 def allowed_file(filename):
@@ -106,3 +106,7 @@ def add_catalog_item():
         return redirect(url_for('catalogs.catalog_detail', catalog_slug=Catalog.query.get(catalog_id).slug))
     catalogs = Catalog.query.all()
     return render_template('add_catalog_item.html', catalogs=catalogs)
+@catalogs_bp.route('/pdf/<path:filename>')
+@login_required
+def get_pdf(filename):
+    return send_from_directory('/var/data/uploads', filename)

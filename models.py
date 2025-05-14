@@ -13,6 +13,49 @@ class User(UserMixin, db.Model):
     # Permission ile ilişki tanımlama (one-to-one)
     permissions = db.relationship('Permission', back_populates='user', uselist=False)
 
+class Permission(db.Model):
+    __tablename__ = 'permission'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Parça Yönetimi
+    can_view_parts = db.Column(db.Boolean, default=False)
+    can_edit_parts = db.Column(db.Boolean, default=False)
+    can_view_purchase_prices = db.Column(db.Boolean, default=False)
+    
+    # Makine Yönetimi
+    can_view_machines = db.Column(db.Boolean, default=True)
+    can_search_machines = db.Column(db.Boolean, default=False)
+    can_add_machines = db.Column(db.Boolean, default=False)
+    can_add_maintenance = db.Column(db.Boolean, default=False)
+    
+    # Arıza ve Çözüm Yönetimi
+    can_view_faults = db.Column(db.Boolean, default=False)
+    can_add_solutions = db.Column(db.Boolean, default=False)
+    
+    # Katalog Yönetimi
+    can_view_catalogs = db.Column(db.Boolean, default=False)
+    
+    # Bakım Yönetimi
+    can_view_maintenance = db.Column(db.Boolean, default=False)
+    can_edit_maintenance = db.Column(db.Boolean, default=False)
+    can_view_periodic_maintenance = db.Column(db.Boolean, default=False)
+    
+    # Teklif Yönetimi
+    can_view_offers = db.Column(db.Boolean, default=False)
+    can_create_offers = db.Column(db.Boolean, default=False)
+    can_approve_offers = db.Column(db.Boolean, default=False)
+    can_reject_offers = db.Column(db.Boolean, default=False)
+    
+    # Diğer Yetkiler
+    can_view_contact = db.Column(db.Boolean, default=False)
+    can_view_warranty = db.Column(db.Boolean, default=False)
+    can_view_accounting = db.Column(db.Boolean, default=False)
+    can_view_admin_panel = db.Column(db.Boolean, default=False)
+    can_upload_excel = db.Column(db.Boolean, default=False)
+
+    user = db.relationship('User', back_populates='permissions')
+
 class Announcement(db.Model):
     __tablename__ = 'announcement'
     id = db.Column(db.Integer, primary_key=True)
@@ -22,31 +65,7 @@ class Announcement(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
 
-class Permission(db.Model):
-    __tablename__ = 'permission'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    can_view_parts = db.Column(db.Boolean, default=False)
-    can_edit_parts = db.Column(db.Boolean, default=False)
-    can_view_faults = db.Column(db.Boolean, default=False)
-    can_add_solutions = db.Column(db.Boolean, default=False)
-    can_view_catalogs = db.Column(db.Boolean, default=False)
-    can_view_maintenance = db.Column(db.Boolean, default=False)
-    can_edit_maintenance = db.Column(db.Boolean, default=False)
-    can_view_contact = db.Column(db.Boolean, default=False)
-    can_view_purchase_prices = db.Column(db.Boolean, default=False)
-    can_view_warranty = db.Column(db.Boolean, default=False)
-    can_view_accounting = db.Column(db.Boolean, default=False)
-    can_view_periodic_maintenance = db.Column(db.Boolean, default=False)
-    can_view_admin_panel = db.Column(db.Boolean, default=False)
-    can_create_offers = db.Column(db.Boolean, default=False)
-    can_view_offers = db.Column(db.Boolean, default=False)
-    can_upload_excel = db.Column(db.Boolean, default=False)
-    can_view_admin_panel = db.Column(db.Boolean, default=False)
-    can_create_offers = db.Column(db.Boolean, default=False)
 
-    # User ile ilişki tanımlama
-    user = db.relationship('User', back_populates='permissions')
 
 class Part(db.Model):
     __tablename__ = 'part'
@@ -106,11 +125,14 @@ class FaultReport(db.Model):
 class Machine(db.Model):
     __tablename__ = 'machine'
     id = db.Column(db.Integer, primary_key=True)
-    serial_number = db.Column(db.String(50), unique=True, nullable=False)
+    serial_number = db.Column(db.String(100), unique=True, nullable=False)
     model = db.Column(db.String(100), nullable=False)
-    owner_name = db.Column(db.String(100), nullable=False)
-    address = db.Column(db.String(200), nullable=False)
-    responsible_service = db.Column(db.String(100), nullable=False)
+    owner_name = db.Column(db.String(200))
+    address = db.Column(db.Text)
+    responsible_service = db.Column(db.String(200))
+    delivery_photos = db.Column(db.String(500))
+    delivery_document = db.Column(db.String(500))
+    delivery_date = db.Column(db.DateTime)
 
 class MaintenanceRecord(db.Model):
     __tablename__ = 'maintenance_record'

@@ -11,7 +11,7 @@
                 <h2>{{ item.name }}</h2>
                 <ul>
                     {% if item.motor_pdf_url %}
-                        <li><a href="{{ url_for('static', filename=item.motor_pdf_url) }}" target="_blank">Motor Parça Kataloğu</a></li>
+                        <li><a href="{{ url_for('catalogs.get_pdf', filename=item.motor_pdf_url) }}" target="_blank">Motor Parça Kataloğu</a></li>
                     {% endif %}
                     {% if item.yedek_parca_pdf_url %}
                         <li><a href="{{ url_for('static', filename=item.yedek_parca_pdf_url) }}" target="_blank">Yedek Parça Kataloğu</a></li>
