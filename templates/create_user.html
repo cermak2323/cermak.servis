@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}
+Yeni Kullanıcı Oluştur - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mb-4 border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-3">Yeni Kullanıcı Oluştur</h5>
+                <form method="POST" action="{{ url_for('auth.create_user') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Kullanıcı Adı</label>
+                        {{ form.username(class="form-control", id="username") }}
+                        {% if form.username.errors %}
+                            {% for error in form.username.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Şifre</label>
+                        {{ form.password(class="form-control", id="password") }}
+                        {% if form.password.errors %}
+                            {% for error in form.password.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Şifreyi Onayla</label>
+                        {{ form.confirm_password(class="form-control", id="confirm_password") }}
+                        {% if form.confirm_password.errors %}
+                            {% for error in form.confirm_password.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Rol</label>
+                        {{ form.role(class="form-select", id="role") }}
+                        {% if form.role.errors %}
+                            {% for error in form.role.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <h6>Yetkiler</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.can_view_parts(class="form-check-input", id="can_view_parts") }}
+                                <label class="form-check-label" for="can_view_parts">Parça Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_edit_parts(class="form-check-input", id="can_edit_parts") }}
+                                <label class="form-check-label" for="can_edit_parts">Parça Düzenleme</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_view_purchase_prices(class="form-check-input", id="can_view_purchase_prices") }}
+                                <label class="form-check-label" for="can_view_purchase_prices">Geliş Fiyatlarını Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_view_catalogs(class="form-check-input", id="can_view_catalogs") }}
+                                <label class="form-check-label" for="can_view_catalogs">Katalog Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_view_maintenance(class="form-check-input", id="can_view_maintenance") }}
+                                <label class="form-check-label" for="can_view_maintenance">Bakım Görüntüleme</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.can_edit_maintenance(class="form-check-input", id="can_edit_maintenance") }}
+                                <label class="form-check-label" for="can_edit_maintenance">Bakım Düzenleme</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_view_faults(class="form-check-input", id="can_view_faults") }}
+                                <label class="form-check-label" for="can_view_faults">Arıza Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_add_solutions(class="form-check-input", id="can_add_solutions") }}
+                                <label class="form-check-label" for="can_add_solutions">Çözüm Ekleme</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_view_contact(class="form-check-input", id="can_view_contact") }}
+                                <label class="form-check-label" for="can_view_contact">İletişim Görüntüleme</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        {{ form.submit(class="btn btn-danger") }}
+                        <a href="{{ url_for('auth.admin_panel') }}" class="btn btn-outline-danger ms-2">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

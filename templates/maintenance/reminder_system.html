@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Bakım Hatırlatma Sistemi - Cermak Servis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-danger">Bakım Hatırlatma Sistemi</h2>
+        <a href="{{ url_for('maintenance.maintenance_settings') }}" class="btn btn-primary">
+            <i class="bi bi-gear"></i> Bakım Ayarları
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Makine Çalışma Saatleri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="statusFilter" class="form-label">Duruma Göre Filtrele:</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Tüm Durumlar</option>
+                            <option value="BAKIM GEREKLİ">Bakım Gerekli</option>
+                            <option value="NORMAL">Normal</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <caption>Makine Bakım Takip Tablosu</caption>
+                            <thead>
+                                <tr>
+                                    <th>Makine Modeli</th>
+                                    <th>Seri No</th>
+                                    <th>Çalışma Saati</th>
+                                    <th>Son Bakım Saati</th>
+                                    <th>Sonraki Bakım Saati</th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for machine in machines %}
+                                <tr class="{% if machine.maintenance_status == 'BAKIM GEREKLİ' %}table-danger{% endif %} machine-row" data-status="{{ machine.maintenance_status }}">
+                                    <td>{{ machine.model }}</td>
+                                    <td>{{ machine.serial_number }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('maintenance.update_machine_hours', machine_id=machine.id) }}" class="d-flex align-items-center">
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" name="usage_hours" value="{{ machine.usage_hours }}" class="form-control" min="{{ machine.usage_hours }}" required>
+                                                <span class="input-group-text">saat</span>
+                                                <div class="btn-group">
+                                                    <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Çalışma saatini güncelle">
+                                                        <i class="bi bi-check-lg"></i> Güncelle
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="quickAddHours(this, 50)" title="50 saat ekle">+50</button>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="quickAddHours(this, 100)" title="100 saat ekle">+100</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </td>
+                                    <td>{{ machine.last_maintenance_hours }}</td>
+                                    <td>{{ machine.next_maintenance_hours }}</td>
+                                    <td>
+                                        <span class="badge {% if machine.maintenance_status == 'BAKIM GEREKLİ' %}bg-danger{% else %}bg-success{% endif %} p-2">
+                                            {{ machine.maintenance_status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('machines.machine_maintenance', machine_id=machine.id) }}" class="btn btn-sm btn-info">
+                                                <i class="bi bi-wrench"></i> Bakım
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#historyModal{{ machine.id }}">
+                                                <i class="bi bi-clock-history"></i> Geçmiş
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% include "maintenance/upcoming_reminders.html" %}
+            {% include "maintenance/completed_reminders.html" %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function quickAddHours(button, hours) {
+        var input = button.closest('form').querySelector('input[name="usage_hours"]');
+        input.value = parseInt(input.value) + hours;
+    }
+
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        var selectedStatus = this.value;
+        var rows = document.querySelectorAll('.machine-row');
+
+        rows.forEach(function(row) {
+            var status = row.dataset.status;
+            if (selectedStatus === '' || selectedStatus === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

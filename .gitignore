@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+.env/
+.venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Local development
+.env
+.env.local
+
+# Keep static directory structure but ignore contents
+static/uploads/*
+static/qrcodes/*
+!static/uploads/.gitkeep
+!static/qrcodes/.gitkeep
+
+# Keep necessary static files
+!static/*.png
+!static/*.jpg
+!static/*.ico 

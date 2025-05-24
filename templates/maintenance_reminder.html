@@ -1,0 +1,206 @@
+
+{% extends "base.html" %}
+
+{% block title %}Bakım Hatırlatma Sistemi - Cermak Servis{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-danger">Bakım Hatırlatma Sistemi</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-danger mb-3">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Yaklaşan Bakımlar</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_maintenances|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Makine Modeli</th>
+                                        <th>Seri Numarası</th>
+                                        <th>Son Bakım Tarihi</th>
+                                        <th>Sonraki Bakım Tarihi</th>
+                                        <th>Kalan Gün</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for maintenance in upcoming_maintenances %}
+                                    <tr class="{% if maintenance.days_remaining <= 7 %}table-danger{% elif maintenance.days_remaining <= 30 %}table-warning{% else %}table-success{% endif %}">
+                                        <td>{{ maintenance.machine.model }}</td>
+                                        <td>{{ maintenance.machine.serial_number }}</td>
+                                        <td>{{ maintenance.last_maintenance_date.strftime('%d.%m.%Y') }}</td>
+                                        <td>{{ maintenance.next_maintenance_date.strftime('%d.%m.%Y') }}</td>
+                                        <td>{{ maintenance.days_remaining }} gün</td>
+                                        <td>
+                                            <a href="{{ url_for('machines.machine_maintenance', machine_id=maintenance.machine.id) }}" class="btn btn-sm btn-danger">Detay</a>
+                                            <button class="btn btn-sm btn-info send-reminder-btn" data-machine-id="{{ maintenance.machine.id }}">Hatırlatma Gönder</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center">Yaklaşan bakım bulunmamaktadır.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-danger mb-3">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Bakım Hatırlatma Ayarları</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('maintenance.update_reminder_settings') }}">
+                        <div class="mb-3">
+                            <label for="reminder_days" class="form-label">Kaç gün önceden hatırlatma yapılsın?</label>
+                            <input type="number" class="form-control" id="reminder_days" name="reminder_days" value="{{ settings.reminder_days if settings else 7 }}" min="1" max="90">
+                        </div>
+                        <div class="mb-3">
+                            <label for="reminder_interval" class="form-label">Bakım sıklığı (gün)</label>
+                            <input type="number" class="form-control" id="reminder_interval" name="reminder_interval" value="{{ settings.reminder_interval if settings else 180 }}" min="30" max="365">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="enable_email" name="enable_email" {% if settings and settings.enable_email %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_email">
+                                E-posta hatırlatmaları etkinleştir
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="enable_sms" name="enable_sms" {% if settings and settings.enable_sms %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_sms">
+                                SMS hatırlatmaları etkinleştir
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-danger">Ayarları Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-danger mb-3">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">İstatistikler</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Toplam Makine Sayısı:</strong> {{ stats.total_machines }}</p>
+                    <p><strong>Bakımı Geciken Makine Sayısı:</strong> <span class="text-danger">{{ stats.overdue_maintenances }}</span></p>
+                    <p><strong>Bu Ay Yapılacak Bakım Sayısı:</strong> {{ stats.this_month_maintenances }}</p>
+                    <p><strong>Gelecek Ay Yapılacak Bakım Sayısı:</strong> {{ stats.next_month_maintenances }}</p>
+                    
+                    <div class="mt-4">
+                        <canvas id="maintenanceStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Manuel Bakım Hatırlatması Gönder</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('maintenance.send_manual_reminder') }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="machine_id" class="form-label">Makine</label>
+                                    <select class="form-control" id="machine_id" name="machine_id" required>
+                                        <option value="" disabled selected>Makine seçin</option>
+                                        {% for machine in machines %}
+                                            <option value="{{ machine.id }}">{{ machine.model }} ({{ machine.serial_number }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reminder_type" class="form-label">Hatırlatma Tipi</label>
+                                    <select class="form-control" id="reminder_type" name="reminder_type" required>
+                                        <option value="email">E-posta</option>
+                                        <option value="sms">SMS</option>
+                                        <option value="both">Her İkisi</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Mesaj</label>
+                            <textarea class="form-control" id="message" name="message" rows="3" required>Sayın müşterimiz, makinenizin bakım zamanı yaklaşmaktadır. Lütfen en kısa sürede servisimizle iletişime geçiniz.</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger">Hatırlatma Gönder</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bakım durumu grafiği
+        const ctx = document.getElementById('maintenanceStatusChart').getContext('2d');
+        const maintenanceStatusChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Bakımı Yaklaşan', 'Bakımı Geciken', 'Bakımı Güncel'],
+                datasets: [{
+                    data: [{{ stats.upcoming_maintenances }}, {{ stats.overdue_maintenances }}, {{ stats.up_to_date_maintenances }}],
+                    backgroundColor: ['#ffc107', '#dc3545', '#198754']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Bakım Durumu Dağılımı'
+                    }
+                }
+            }
+        });
+        
+        // Hatırlatma gönderme butonu için olay dinleyicisi
+        document.querySelectorAll('.send-reminder-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const machineId = this.getAttribute('data-machine-id');
+                if (confirm('Bu makine için bakım hatırlatması göndermek istediğinize emin misiniz?')) {
+                    fetch(`/maintenance/send-reminder/${machineId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Hatırlatma başarıyla gönderildi!');
+                        } else {
+                            alert('Hatırlatma gönderilirken bir hata oluştu: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Hata:', error);
+                        alert('İşlem sırasında bir hata oluştu.');
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto;">
+        <h1 class="display-4 text-danger fw-bold">Yeni Makine Kayıt</h1>
+        <p class="lead text-muted">Yeni makine kaydı oluşturmak için aşağıdaki formu doldurunuz.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card registration-card shadow">
+                <div class="card-header bg-danger text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        <h3 class="mb-0">Makine Kayıt Formu</h3>
+                    </div>
+                </div>
+                <div class="card-body py-4">
+                    <form method="POST" id="machineRegistrationForm">
+
+<div class="registration-progress mb-5">
+                <div class="progress" style="height: 12px; border-radius: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                    <div class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(to right, #e74c3c, #c0392b);" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="registrationProgress"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <div class="progress-step-container active">
+                        <span class="progress-step-number">1</span>
+                        <span class="progress-step active" data-step="1">Makine Bilgileri</span>
+                    </div>
+                    <div class="progress-step-container">
+                        <span class="progress-step-number">2</span>
+                        <span class="progress-step" data-step="2">Müşteri Bilgileri</span>
+                    </div>
+                    <div class="progress-step-container">
+                        <span class="progress-step-number">3</span>
+                        <span class="progress-step" data-step="3">Ekipman Bilgileri</span>
+                    </div>
+                    <div class="progress-step-container">
+                        <span class="progress-step-number">4</span>
+                        <span class="progress-step" data-step="4">Teslim Dokümanları</span>
+                    </div>
+                </div>
+            </div>
+
+                        <!-- Step 1: Makine Bilgileri -->
+                        <div class="registration-step" data-step="1">
+                            <h4 class="step-title"><i class="fas fa-truck-monster me-2"></i>Makine Detayları</h4>
+                        <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <select class="form-control" id="model" name="model" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="TB210R">TB210R</option>
+                                            <option value="TB215R">TB215R</option>
+                                            <option value="TB216">TB216</option>
+                                            <option value="TB217R">TB217R</option>
+                                            <option value="TB325">TB325</option>
+                                            <option value="TB235-2">TB235-2</option>
+                                            <option value="TB240-2">TB240-2</option>
+                                            <option value="TB260-2">TB260-2</option>
+                                            <option value="TB290-2">TB290-2</option>
+                                            <option value="TL8R-2">TL8R-2</option>
+                                        </select>
+                                        <label for="model">Makine Modeli</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="serial_number" name="serial_number" required>
+                                        <label for="serial_number">Seri Numarası</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="next-prev-container">
+                                <button type="button" class="btn prev-step-btn" style="visibility: hidden">
+                                    <i class="fas fa-arrow-left me-1"></i> Geri
+                                </button>
+                                <button type="button" class="btn next-step-btn">
+                                    İleri <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Müşteri Bilgileri -->
+                        <div class="registration-step" data-step="2">
+                            <h4 class="step-title"><i class="fas fa-user me-2"></i>Müşteri Bilgileri</h4>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="owner_name" name="owner_name" required>
+                                        <label for="owner_name">Makine Sahibi</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                                        <label for="phone_number">Telefon Numarası</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <select class="form-control" id="city" name="city" required>
+                                            <option value="">Seçiniz</option>
+                                            <!-- Şehirler JavaScript ile doldurulacak -->
+                                        </select>
+                                        <label for="city">Şehir</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <select class="form-control" id="responsible_service" name="responsible_service" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="MERTSAN MAKİNA - ADANA">MERTSAN MAKİNA - ADANA</option>
+                                            <option value="YETKİN MAKİNA - ALANYA">YETKİN MAKİNA - ALANYA</option>
+                                            <option value="EMRE MAKİNA - ANKARA">EMRE MAKİNA - ANKARA</option>
+                                            <option value="ENERMAK İŞ MAKİNALARI - ANKARA">ENERMAK İŞ MAKİNALARI - ANKARA</option>
+                                            <option value="İŞ-MAK HİDROLİK - AYDIN">İŞ-MAK HİDROLİK - AYDIN</option>
+                                            <option value="CAN İŞ-MAK MAKİNELERİ - BALIKESİR">CAN İŞ-MAK MAKİNELERİ - BALIKESİR</option>
+                                            <option value="CAN KARDEŞLER - BOLU">CAN KARDEŞLER - BOLU</option>
+                                            <option value="IŞIK MAKİNA - BURSA">IŞIK MAKİNA - BURSA</option>
+                                            <option value="ÇEKİÇ İŞ MAKİNALARI - BURSA">ÇEKİÇ İŞ MAKİNALARI - BURSA</option>
+                                            <option value="UĞUR MAKİNA - ÇORLU">UĞUR MAKİNA - ÇORLU</option>
+                                            <option value="HÜSNÜOĞULLARI İŞ MAK. - ÇORUM">HÜSNÜOĞULLARI İŞ MAK. - ÇORUM</option>
+                                            <option value="RİMSAN MAKİNA - DİYARBAKIR">RİMSAN MAKİNA - DİYARBAKIR</option>
+                                            <option value="ÖZKAN KAYALAR - ELAZIĞ">ÖZKAN KAYALAR - ELAZIĞ</option>
+                                            <option value="PALANDÖKEN MAKİNA - ERZURUM">PALANDÖKEN MAKİNA - ERZURUM</option>
+                                            <option value="ANTEP İŞ MAKİNA - GAZİANTEP">ANTEP İŞ MAKİNA - GAZİANTEP</option>
+                                            <option value="TAŞARLAR TAŞIMACILIK - HATAY">TAŞARLAR TAŞIMACILIK - HATAY</option>
+                                            <option value="ÖZHAN HİDROLİK - İZMİR">ÖZHAN HİDROLİK - İZMİR</option>
+                                            <option value="HİLAL OTO ELEKTRİK - KASTAMONU">HİLAL OTO ELEKTRİK - KASTAMONU</option>
+                                            <option value="ÖZ DEDELİN İŞ MAKİNALARI - KAYSERİ">ÖZ DEDELİN İŞ MAKİNALARI - KAYSERİ</option>
+                                            <option value="İLKER İŞ MAKİNALARI - MALATYA">İLKER İŞ MAKİNALARI - MALATYA</option>
+                                            <option value="ÜSTÜN MAKİNA - KAHRAMANMARAŞ">ÜSTÜN MAKİNA - KAHRAMANMARAŞ</option>
+                                            <option value="GÜÇ MAK İŞ MAKİNALARI - MERSİN">GÜÇ MAK İŞ MAKİNALARI - MERSİN</option>
+                                            <option value="ÜMİT MAKİNA - MERSİN">ÜMİT MAKİNA - MERSİN</option>
+                                            <option value="TİTİZ İŞ MAKİNALARI - ORDU">TİTİZ İŞ MAKİNALARI - ORDU</option>
+                                            <option value="FURKAN MAKİNA - SAKARYA">FURKAN MAKİNA - SAKARYA</option>
+                                            <option value="UZMAN İŞ MAKİNA - SAMSUN">UZMAN İŞ MAKİNA - SAMSUN</option>
+                                            <option value="GÜVEN İŞ MAKİNALARI - TRABZON">GÜVEN İŞ MAKİNALARI - TRABZON</option>
+                                            <option value="PRESTİJ MAKİNA - YALOVA">PRESTİJ MAKİNA - YALOVA</option>
+                                            <option value="HASAN BİLMEZ - ZONGULDAK">HASAN BİLMEZ - ZONGULDAK</option>
+                                            <option value="DEMİRLİ İŞ MAKİNELERİ - DENİZLİ">DEMİRLİ İŞ MAKİNELERİ - DENİZLİ</option>
+                                            <option value="MET-İŞ TİCARET - EDİRNE">MET-İŞ TİCARET - EDİRNE</option>
+                                        </select>
+                                        <label for="responsible_service">Yetkili Servis</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-floating mb-3">
+                                        <textarea class="form-control" id="address_detail" name="address_detail" style="height: 100px" required></textarea>
+                                        <label for="address_detail">Detaylı Adres</label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+</div> <!-- step-content-container kapanış -->
+                            <div class="next-prev-container">
+                                <button type="button" class="btn prev-step-btn">
+                                    <i class="fas fa-arrow-left me-1"></i> Geri
+                                </button>
+                                <button type="button" class="btn next-step-btn">
+                                    İleri <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Ekipman Bilgileri -->
+                        <div class="registration-step" data-step="3">
+                            <h4 class="step-title"><i class="fas fa-tools me-2"></i>Ekipman Bilgileri</h4>
+
+                            <div class="equipment-list">
+                                <div class="equipment-item mb-4">
+                                    <div class="card equipment-card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Ekipman #1</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Ekipman Türü</label>
+                                                    <select class="form-select equipment-type" name="equipment_type[]" required>
+                                                        <option value="">Ekipman Türü Seçin</option>
+                                                        <option value="kova">Kova</option>
+                                                        <option value="atasman">Ataşman</option>
+                                                        <option value="quickhitch">Quick Hitch</option>
+                                                        <option value="50_saat_bakim">50 Saat Bakım Filtre Seti</option>
+                                                        <option value="250_saat_bakim">250 Saat Bakım Filtre Seti</option>
+                                                        <option value="500_saat_bakim">500 Saat Bakım Filtre Seti</option>
+                                                        <option value="750_saat_bakim">750 Saat Bakım Filtre Seti</option>
+                                                        <option value="1000_saat_bakim">1000 Saat Bakım Filtre Seti</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Boyut/Ölçü</label>
+                                                    <select class="form-select kova-size d-none" name="equipment_size[]">
+                                                        <option value="">Genişlik Seçin (cm)</option>
+                                                        <option value="20">20 cm</option>
+                                                        <option value="25">25 cm</option>
+                                                        <option value="30">30 cm</option>
+                                                        <option value="35">35 cm</option>
+                                                        <option value="40">40 cm</option>
+                                                        <option value="45">45 cm</option>
+                                                        <option value="50">50 cm</option>
+                                                        <option value="55">55 cm</option>
+                                                        <option value="60">60 cm</option>
+                                                        <option value="65">65 cm</option>
+                                                        <option value="70">70 cm</option>
+                                                        <option value="75">75 cm</option>
+                                                        <option value="80">80 cm</option>
+                                                        <option value="90">90 cm</option>
+                                                        <option value="100">100 cm</option>
+                                                        <option value="110">110 cm</option>
+                                                        <option value="120">120 cm</option>
+                                                        <option value="140">140 cm</option>
+                                                        <option value="160">160 cm</option>
+                                                    </select>
+                                                    <input type="text" class="form-control size-input d-none" name="equipment_size[]" placeholder="Ölçü/Boyut">
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label">Detaylar</label>
+                                                    <textarea class="form-control" name="equipment_details[]" rows="2" placeholder="Ekipman hakkında ek detaylar"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mb-4">
+                                <button type="button" class="btn btn-outline-primary" id="addEquipment">
+                                    <i class="fas fa-plus-circle me-1"></i> Ekipman Ekle
+                                </button>
+                            </div>
+
+
+</div> <!-- step-content-container kapanış -->
+                            <div class="next-prev-container">
+                                <button type="button" class="btn prev-step-btn">
+                                    <i class="fas fa-arrow-left me-1"></i> Geri
+                                </button>
+                                <button type="button" class="btn next-step-btn">
+                                    İleri <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Teslim Dokümanları -->
+                        <div class="registration-step" data-step="4">
+                            <h4 class="step-title"><i class="fas fa-file-alt me-2"></i>Teslim Dokümanları</h4>
+
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="file-upload-container">
+                                        <div class="upload-area mb-4">
+                                            <div class="dashed-border text-center p-4">
+                                                <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                                                <h5>Teslim Fotoğrafları</h5>
+                                                <p class="text-muted mb-3">Makinenin teslim öncesi durumunu gösteren fotoğraflar</p>
+                                                <input type="file" class="d-none" id="delivery_photos" name="delivery_photos" multiple accept="image/*" required>
+                                                <label for="delivery_photos" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-upload me-2"></i>Fotoğraf Seç
+                                                </label>
+                                            </div>
+                                            <div id="photoPreviewContainer" class="preview-container row mt-3 g-2"></div>
+                                        </div>
+
+                                        <div class="upload-area">
+                                            <div class="dashed-border text-center p-4">
+                                                <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                                                <h5>Teslim Belgesi</h5>
+                                                <p class="text-muted mb-3">Müşteri tarafından imzalanmış teslim belgesi</p>
+                                                <input type="file" class="d-none" id="delivery_document" name="delivery_document" accept=".pdf,.doc,.docx" required>
+                                                <label for="delivery_document" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-upload me-2"></i>Belge Seç
+                                                </label>
+                                            </div>
+                                            <div id="documentPreviewContainer" class="preview-container mt-3"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="next-prev-container">
+                                <button type="button" class="btn prev-step-btn">
+                                    <i class="fas fa-arrow-left me-1"></i> Geri
+                                </button>
+                                <button type="submit" class="btn submit-form-btn">
+                                    <i class="fas fa-save me-1"></i> Makineyi Kaydet
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/address.js') }}"></script>
+<script src="{{ url_for('static', filename='js/registration.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dosya önizleme
+    const photosInput = document.getElementById('delivery_photos');
+    const documentInput = document.getElementById('delivery_document');
+    const photoPreviewContainer = document.getElementById('photoPreviewContainer');
+    const documentPreviewContainer = document.getElementById('documentPreviewContainer');
+
+    if (photosInput) {
+        photosInput.addEventListener('change', function() {
+            photoPreviewContainer.innerHTML = '';
+
+            if (this.files.length > 0) {
+                for (let i = 0; i < this.files.length; i++) {
+                    const file = this.files[i];
+                    if (!file.type.match('image.*')) continue;
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'col-md-3 mb-2';
+                        previewDiv.innerHTML = `
+                            <div class="preview-image-card">
+                                <img src="${e.target.result}" class="img-thumbnail preview-image" alt="Önizleme">
+                            </div>
+                        `;
+                        photoPreviewContainer.appendChild(previewDiv);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+    }
+
+    if (documentInput) {
+        documentInput.addEventListener('change', function() {
+            documentPreviewContainer.innerHTML = '';
+
+            if (this.files.length > 0) {
+                const file = this.files[0];
+
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'document-preview-card';
+
+                if (file.type === 'application/pdf') {
+                    previewDiv.innerHTML = `
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center">
+                                <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">${file.name}</h6>
+                                    <small class="text-muted">${(file.size / 1024).toFixed(2)} KB</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    previewDiv.innerHTML = `
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center">
+                                <i class="fas fa-file-word fa-2x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">${file.name}</h6>
+                                    <small class="text-muted">${(file.size / 1024).toFixed(2)} KB</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                documentPreviewContainer.appendChild(previewDiv);
+            }
+        });
+    }
+
+    // Adım takibi için CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        .dashed-border {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .dashed-border:hover {
+            border-color: #e74c3c;
+            background-color: #fff9f9;
+        }
+
+        .preview-image-card {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .preview-image-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .document-preview-card {
+            transition: all 0.3s ease;
+        }
+
+        .document-preview-card:hover {
+            transform: translateY(-3px);
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+
+<style>
+.next-prev-container {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.prev-step-btn {
+    background-color: #f8f9fa;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+}
+
+.prev-step-btn:hover {
+    background-color: #fff0f0;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(231, 76, 60, 0.15);
+}
+
+.next-step-btn, .submit-form-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+}
+
+.next-step-btn:hover, .submit-form-btn:hover {
+    background-color: #c0392b;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+}
+.registration-progress {
+    margin-bottom: 30px;
+}
+
+.progress {
+    height: 12px;
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    background: linear-gradient(to right, #e74c3c, #c0392b);
+    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+    transition: width 0.6s ease;
+}
+
+.progress-step-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.progress-step-number {
+    width: 30px;
+    height: 30px;
+    background-color: #fff;
+    border: 2px solid #e74c3c;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #e74c3c;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.progress-step {
+    font-size: 0.8rem;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.progress-step-container.active .progress-step-number {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.progress-step-container.active .progress-step {
+    color: #333;
+    font-weight: bold;
+}
+</style>
+{% endblock content %}

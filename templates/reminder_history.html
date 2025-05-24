@@ -1,0 +1,113 @@
+
+{% extends "base.html" %}
+
+{% block title %}Bakım Hatırlatma Geçmişi - Cermak Servis{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-danger">Bakım Hatırlatma Geçmişi</h2>
+    
+    <div class="card border-danger mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Gönderilen Hatırlatmalar</h5>
+        </div>
+        <div class="card-body">
+            {% if reminders|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Makine</th>
+                                <th>Seri No</th>
+                                <th>Hatırlatma Tipi</th>
+                                <th>Durum</th>
+                                <th>Mesaj</th>
+                                <th>Hata</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reminder, serial_number, model in reminders %}
+                            <tr class="{% if reminder.success %}table-success{% else %}table-danger{% endif %}">
+                                <td>{{ reminder.sent_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>{{ model }}</td>
+                                <td>{{ serial_number }}</td>
+                                <td>
+                                    {% if reminder.reminder_type == 'email' %}
+                                    <span class="badge bg-primary">E-posta</span>
+                                    {% elif reminder.reminder_type == 'sms' %}
+                                    <span class="badge bg-info">SMS</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ reminder.reminder_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if reminder.success %}
+                                    <span class="badge bg-success">Başarılı</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Başarısız</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if reminder.message %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary view-message-btn" data-bs-toggle="modal" data-bs-target="#messageModal" 
+                                            data-message="{{ reminder.message }}">
+                                        Mesajı Görüntüle
+                                    </button>
+                                    {% else %}
+                                    <span class="text-muted">Standart mesaj</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not reminder.success and reminder.error_message %}
+                                    <span class="text-danger">{{ reminder.error_message }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center">Henüz gönderilmiş bir hatırlatma bulunmamaktadır.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="{{ url_for('maintenance.reminder_system') }}" class="btn btn-danger">Bakım Hatırlatma Sistemine Dön</a>
+    </div>
+</div>
+
+<!-- Mesaj Görüntüleme Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Hatırlatma Mesajı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessageContent"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mesaj görüntüleme butonu için olay dinleyicisi
+        document.querySelectorAll('.view-message-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const message = this.getAttribute('data-message');
+                document.getElementById('modalMessageContent').textContent = message;
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

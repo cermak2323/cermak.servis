@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}
+İLETİŞİM - CERMAK SERVİS TEKNİK BİLGİ SİSTEMİ
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-5">
+            <h1 class="display-4 text-danger">İLETİŞİM</h1>
+            <p class="lead">CERMAK SERVİS TEKNİK YÖNETİM</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Satış Sonrası Teknik Müdür -->
+            <div class="col-md-4">
+                <div class="card h-100 border-danger shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">SATIŞ SONRASI TEKNİK MÜDÜR</h5>
+                        <p class="card-text fw-bold">TAHSİN RIZA ASLAN</p>
+                        <p class="card-text">
+                            <i class="bi bi-telephone-fill text-danger me-2"></i>GSM: <a href="tel:+905337703864" class="text-dark">0533 770 38 64</a><br>
+                            <i class="bi bi-envelope-fill text-danger me-2"></i>E-MAİL: <a href="mailto:tahsin@cerenmakina.com" class="text-dark">TAHSIN@CERENMAKINA.COM</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Servis Sorumlusu -->
+            <div class="col-md-4">
+                <div class="card h-100 border-danger shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">SERVİS SORUMLUSU</h5>
+                        <p class="card-text fw-bold">ADEM OCAK</p>
+                        <p class="card-text">
+                            <i class="bi bi-telephone-fill text-danger me-2"></i>GSM: <a href="tel:+905334271945" class="text-dark">0533 427 19 45</a><br>
+                            <i class="bi bi-envelope-fill text-danger me-2"></i>E-MAİL: <a href="mailto:servis1@cerenmakina.com" class="text-dark">SERVIS1@CERENMAKINA.COM</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Üretim Sorumlusu -->
+            <div class="col-md-4">
+                <div class="card h-100 border-danger shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">ÜRETİM SORUMLUSU</h5>
+                        <p class="card-text fw-bold">SUAT YILDIZ</p>
+                        <p class="card-text">
+                            <i class="bi bi-telephone-fill text-danger me-2"></i>GSM: <a href="tel:+905337703865" class="text-dark">0533 770 38 65</a><br>
+                            <i class="bi bi-envelope-fill text-danger me-2"></i>E-MAİL: <a href="mailto:servis3@cerenmakina.com" class="text-dark">SERVIS3@CERENMAKINA.COM</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yedek Parça Sorumlusu -->
+            <div class="col-md-4">
+                <div class="card h-100 border-danger shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">YEDEK PARÇA SORUMLUSU</h5>
+                        <p class="card-text fw-bold">M. EMİR ERSÜT</p>
+                        <p class="card-text">
+                            <i class="bi bi-telephone-fill text-danger me-2"></i>GSM: <a href="tel:+905334291513" class="text-dark">0533 429 15 13</a><br>
+                            <i class="bi bi-envelope-fill text-danger me-2"></i>E-MAİL: <a href="mailto:yedekparca@cerenmakina.com" class="text-dark">YEDEKPARCA@CERENMAKINA.COM</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Depo Sorumlusu -->
+            <div class="col-md-4">
+                <div class="card h-100 border-danger shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">DEPO SORUMLUSU</h5>
+                        <p class="card-text fw-bold">ZAKİR ESER</p>
+                        <p class="card-text">
+                            <i class="bi bi-telephone-fill text-danger me-2"></i>GSM: <a href="tel:+905453156077" class="text-dark">0545 315 60 77</a><br>
+                            <i class="bi bi-envelope-fill text-danger me-2"></i>E-MAİL: <a href="mailto:cermakdepo@cerenmakina.com" class="text-dark">CERMAKDEPO@CERENMAKINA.COM</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-danger mt-5">Geri Dön</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}
+Kullanıcı Düzenle - Cermak Servis Teknik Bilgi Sistemi
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4 text-danger">Kullanıcı Düzenle: {{ user.username }}</h2>
+        <div class="card border-danger">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Kullanıcı Adı</label>
+                        <input type="text" class="form-control border-danger" id="username" name="username" value="{{ user.username }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Şifre (Değiştirmek istemiyorsanız boş bırakın)</label>
+                        <input type="password" class="form-control border-danger" id="password" name="password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Rol</label>
+                        <select class="form-select border-danger" id="role" name="role" required>
+                            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                            <option value="servis" {% if user.role == 'servis' %}selected{% endif %}>Yetkili Servis</option>
+                            <option value="muhendis" {% if user.role == 'muhendis' %}selected{% endif %}>Mühendis</option>
+                            <option value="musteri" {% if user.role == 'musteri' %}selected{% endif %}>Müşteri</option>
+                        </select>
+                    </div>
+                    <h5 class="text-danger mb-3">Yetkiler</h5>
+
+                    <!-- Makine Yönetimi -->
+<div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            Makine Yönetimi
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_machines" name="can_view_machines" {% if permission.can_view_machines %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_machines">Makine Yönetimini Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_search_machines" name="can_search_machines" {% if permission.can_search_machines %}checked{% endif %}>
+                                <label class="form-check-label" for="can_search_machines">Makine Arama</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_add_machines" name="can_add_machines" {% if permission.can_add_machines %}checked{% endif %}>
+                                <label class="form-check-label" for="can_add_machines">Yeni Makine Ekle</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_list_machines" name="can_list_machines" {% if permission.can_list_machines %}checked{% endif %}>
+                                <label class="form-check-label" for="can_list_machines">Makine Listesi</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_maintenance_reminders" name="can_view_maintenance_reminders" {% if permission.can_view_maintenance_reminders %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_maintenance_reminders">Bakım Hatırlatma Sistemi</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_approve_offers" name="can_approve_offers" {% if permission.can_approve_offers %}checked{% endif %}>
+                                <label class="form-check-label" for="can_approve_offers">Teklif Onaylama</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_reject_offers" name="can_reject_offers" {% if permission.can_reject_offers %}checked{% endif %}>
+                                <label class="form-check-label" for="can_reject_offers">Teklif Reddetme</label>
+                            </div>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_search_machines" name="can_search_machines" {% if permission.can_search_machines %}checked{% endif %}>
+                                <label class="form-check-label" for="can_search_machines">Makine Arama</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_add_machines" name="can_add_machines" {% if permission.can_add_machines %}checked{% endif %}>
+                                <label class="form-check-label" for="can_add_machines">Yeni Makine Ekle</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_add_maintenance" name="can_add_maintenance" {% if permission.can_add_maintenance %}checked{% endif %}>
+                                <label class="form-check-label" for="can_add_maintenance">Bakım Kaydı Ekle</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parça Yönetimi -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            Parça Yönetimi
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_parts" name="can_view_parts" {% if permission.can_view_parts %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_parts">Yedek Parçaları Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_edit_parts" name="can_edit_parts" {% if permission.can_edit_parts %}checked{% endif %}>
+                                <label class="form-check-label" for="can_edit_parts">Yedek Parçaları Düzenleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_purchase_prices" name="can_view_purchase_prices" {% if permission.can_view_purchase_prices %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_purchase_prices">Geliş Fiyatlarını Görüntüleme</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Arıza Yönetimi -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            Arıza Yönetimi
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_faults" name="can_view_faults" {% if permission.can_view_faults %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_faults">Arıza Kayıtlarını Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_add_solutions" name="can_add_solutions" {% if permission.can_add_solutions %}checked{% endif %}>
+                                <label class="form-check-label" for="can_add_solutions">Çözüm Ekleme</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Katalog ve Bakım -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            Katalog ve Bakım
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="can_view_catalogs" name="can_view_catalogs" {% if permission.can_view_catalogs %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_catalogs">Katalogları Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="can_view_maintenance" name="can_view_maintenance" {% if permission.can_view_maintenance %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_maintenance">Bakım Kaydı Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="can_edit_maintenance" name="can_edit_maintenance" {% if permission.can_edit_maintenance %}checked{% endif %}>
+                                <label class="form-check-label" for="can_edit_maintenance">Bakım Kaydı Düzenleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="can_view_maintenance_reminders" name="can_view_maintenance_reminders" {% if permission.can_view_maintenance_reminders %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_maintenance_reminders">Bakım Hatırlatma Sistemi</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teklif Yönetimi -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            Teklif Yönetimi
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_offers" name="can_view_offers" {% if permission.can_view_offers %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_offers">Teklifleri Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_create_offers" name="can_create_offers" {% if permission.can_create_offers %}checked{% endif %}>
+                                <label class="form-check-label" for="can_create_offers">Teklif Oluşturma</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_approve_offers" name="can_approve_offers" {% if permission.can_approve_offers %}checked{% endif %}>
+                                <label class="form-check-label" for="can_approve_offers">Teklif Onaylama</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_reject_offers" name="can_reject_offers" {% if permission.can_reject_offers %}checked{% endif %}>
+                                <label class="form-check-label" for="can_reject_offers">Teklif Reddetme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_periodic_maintenance" name="can_view_periodic_maintenance" {% if permission.can_view_periodic_maintenance %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_periodic_maintenance">Periyodik Bakım Görüntüleme</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diğer Yetkiler -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            Diğer Yetkiler
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_contact" name="can_view_contact" {% if permission.can_view_contact %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_contact">İletişim Bilgilerini Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_view_admin_panel" name="can_view_admin_panel" {% if permission.can_view_admin_panel %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_admin_panel">Admin Panelini Görüntüleme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="can_upload_excel" name="can_upload_excel" {% if permission.can_upload_excel %}checked{% endif %}>
+                                <label class="form-check-label" for="can_upload_excel">Excel Yükleme</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">Kaydet</button>
+                        <a href="{{ url_for('auth.admin_panel') }}" class="btn btn-outline-danger">Geri Dön</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

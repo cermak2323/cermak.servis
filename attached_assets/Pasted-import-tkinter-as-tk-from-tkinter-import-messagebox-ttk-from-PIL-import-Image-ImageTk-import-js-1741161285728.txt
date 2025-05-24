@@ -1,0 +1,300 @@
+import tkinter as tk
+from tkinter import messagebox, ttk
+from PIL import Image, ImageTk
+import json
+import requests
+import xml.etree.ElementTree as ET
+import math
+import locale
+import os
+import time
+import re
+import logging
+
+# Türkçe yerel ayarını kullanmak için locale ayarlamaları
+locale.setlocale(locale.LC_ALL, 'tr_TR.UTF-8')  # Türkçe yerel ayar
+
+# Loglama ayarları
+logging.basicConfig(filename="app.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+# Önbellek için global değişkenler
+euro_kuru_cache = None
+euro_kuru_cache_time = 0
+CACHE_DURATION = 3600  # 1 saat (saniye cinsinden)
+
+# TCMB Döviz Kuru Alma Fonksiyonu (Önbellekleme eklenmiş)
+def get_euro_to_try():
+    global euro_kuru_cache, euro_kuru_cache_time
+
+    # Önbellekteki veri hala geçerli mi?
+    if euro_kuru_cache and (time.time() - euro_kuru_cache_time) < CACHE_DURATION:
+        return euro_kuru_cache
+
+    try:
+        url = "https://www.tcmb.gov.tr/kurlar/today.xml"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # HTTP hatalarını yakala
+        tree = ET.ElementTree(ET.fromstring(response.content))
+        root = tree.getroot()
+        for currency in root.findall(".//Currency"):
+            if currency.get("Kod") == "EUR":
+                euro_kuru_cache = float(currency.find("ForexSelling").text)
+                euro_kuru_cache_time = time.time()  # Önbellek zamanını güncelle
+                logging.info(f"Euro kuru başarıyla alındı: {euro_kuru_cache}")
+                return euro_kuru_cache
+        return None
+    except requests.RequestException as e:
+        logging.error(f"Döviz kuru alınamadı: {e}")
+        messagebox.showerror("Hata", f"Döviz kuru alınamadı: {e}")
+        return None
+
+# JSON dosyasını yükleme (Hata yönetimi geliştirilmiş)
+def load_parca_verileri():
+    # Proje kök dizinini bul
+    proje_dizini = os.path.dirname(os.path.abspath(__file__))
+    dosya_yolu = os.path.join(proje_dizini, 'parcalar.json')  # Dosya yolunu birleştir
+
+    if not os.path.exists(dosya_yolu):
+        messagebox.showerror("Hata", f"{dosya_yolu} dosyası bulunamadı!")
+        return None
+
+    try:
+        with open(dosya_yolu, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            # NaN değerleri kontrol et ve düzelt
+            for item in data:
+                if "Geliş Fiyat (EUR)" in item and (item["Geliş Fiyat (EUR)"] is None or isinstance(item["Geliş Fiyat (EUR)"], float) and math.isnan(item["Geliş Fiyat (EUR)"])):
+                    item["Geliş Fiyat (EUR)"] = 0.0  # NaN yerine 0.0 koy
+            return data
+    except json.JSONDecodeError:
+        messagebox.showerror("Hata", "parcalar.json dosyası hatalı format!")
+        return None
+    except Exception as e:
+        messagebox.showerror("Hata", f"Beklenmeyen bir hata oluştu: {e}")
+        return None
+
+# Parça kodu doğrulama
+def validate_parca_kodu(kod):
+    # Sadece harf, rakam ve tire/alt çizgiye izin ver
+    return bool(re.match(r"^[A-Za-z0-9_-]+$", kod))
+
+# Parça fiyatını sorgulama (Önbellek ve hata yönetimi eklenmiş)
+def parca_fiyati_sorgula(entry_parca_kodu):
+    kod = entry_parca_kodu.get().strip().upper()
+    if not kod:  # Boş giriş kontrolü
+        messagebox.showwarning("Uyarı", "Lütfen bir parça kodu girin!")
+        return
+    if not validate_parca_kodu(kod):
+        messagebox.showwarning("Uyarı", "Geçersiz parça kodu! Sadece harf, rakam ve tire/alt çizgi kullanabilirsiniz.")
+        return
+
+    parca_verileri = load_parca_verileri()
+    if not parca_verileri:
+        return
+
+    parca = next((item for item in parca_verileri if item.get("Parça Kodu", "").strip().upper() == kod), None)
+    if parca:
+        try:
+            fiyat_euro = parca["Geliş Fiyat (EUR)"]
+            euro_kuru = get_euro_to_try()
+
+            if euro_kuru is None:
+                # Önbellekteki son kur bilgisini kullan
+                if euro_kuru_cache:
+                    use_cached = messagebox.askyesno("Uyarı", "Güncel döviz kuru alınamadı. Son kaydedilen kur bilgisini kullanmak ister misiniz?")
+                    if use_cached:
+                        euro_kuru = euro_kuru_cache
+                    else:
+                        return
+                else:
+                    messagebox.showerror("Hata", "Döviz kuru alınamadı ve önbellekte veri yok!")
+                    return
+
+            fiyat_try = fiyat_euro * euro_kuru
+            satis_fiyati_try = fiyat_try * 3
+            fiyat_ekrani(fiyat_euro, fiyat_try, satis_fiyati_try, kod, parca)
+        except KeyError:
+            messagebox.showerror("Hata", "Parça verisinde eksik bilgi var!")
+    else:
+        messagebox.showerror("Hata", "Parça Kodu Bulunamadı!")
+
+# Fiyat ve detay ekranı (Daha modern bir arayüz)
+def fiyat_ekrani(fiyat_euro, fiyat_try, satis_fiyati_try, kod, parca):
+    fiyat_window = tk.Toplevel()  # Yeni pencere
+    fiyat_window.title("Fiyat Detayları")
+    fiyat_window.geometry("1280x1024")  # Sabit pencere boyutu
+    fiyat_window.configure(bg="white")
+
+    # Başlık
+    tk.Label(fiyat_window, text="Parça Fiyat Detayı", font=("Helvetica", 36, "bold"), fg="red", bg="white").pack(pady=40)
+
+    # Bilgileri gösterme
+    bilgiler = [
+        f"Parça Kodu: {kod}",
+        f"Parça Adı: {parca.get('Parça Adı', 'Bilgi Yok')}",
+        f"Geliş Fiyatı (EUR): {locale.format_string('%.2f', fiyat_euro, grouping=True)} €",
+        f"Geliş Fiyatı (TRY): {locale.format_string('%.2f', fiyat_try, grouping=True)} ₺",
+        f"Satış Fiyatı (TRY): {locale.format_string('%.2f', satis_fiyati_try, grouping=True)} ₺"
+    ]
+
+    for bilgi in bilgiler:
+        tk.Label(fiyat_window, text=bilgi, font=("Helvetica", 24), bg="white", fg="#333333").pack(pady=10)
+
+    # Geri butonu
+    geri_buton = tk.Button(fiyat_window, text="Geri", font=("Helvetica", 24), bg="red", fg="white", command=fiyat_window.destroy)
+    geri_buton.pack(pady=40)
+
+    # Buton hover efekti
+    def on_enter(e):
+        e.widget['background'] = '#cc0000'  # Fare üzerine gelince daha koyu kırmızı
+
+    def on_leave(e):
+        e.widget['background'] = 'red'  # Fare çekilince normal kırmızı
+
+    geri_buton.bind("<Enter>", on_enter)
+    geri_buton.bind("<Leave>", on_leave)
+
+# Logo yükleme (Daha esnek bir yol)
+def load_logo():
+    try:
+        logo_path = os.path.join(os.path.dirname(__file__), "takeuchi.jpg")  # Logo dosyasının yolu
+        logo_image = Image.open(logo_path)
+        logo_image = logo_image.resize((1200, 200), Image.Resampling.LANCZOS)  # Daha büyük logo
+        return ImageTk.PhotoImage(logo_image)
+    except Exception as e:
+        messagebox.showerror("Hata", f"Logo yüklenirken hata oluştu: {e}")
+        return None
+
+# Login ekranı (Daha modern bir arayüz)
+def login():
+    def kontrol_et(event=None):
+        if entry_id.get() == "Cermak" and entry_sifre.get() == "Cermak2025":
+            login_window.destroy()
+            ana_menu_ekrani()
+        else:
+            messagebox.showerror("Hata", "Yanlış ID veya Şifre!")
+
+    login_window = tk.Tk()
+    login_window.title("Giriş Yap")
+    login_window.geometry("1280x1024")  # Sabit pencere boyutu
+    login_window.configure(bg="white")
+
+    logo_photo = load_logo()
+    if logo_photo:
+        tk.Label(login_window, image=logo_photo, bg="white").pack(pady=40)
+
+    tk.Label(login_window, text="Giriş Yap", font=("Helvetica", 48, "bold"), fg="red", bg="white").pack(pady=40)
+
+    tk.Label(login_window, text="Kullanıcı Adı:", font=("Helvetica", 24), bg="white", fg="#333333").pack()
+    entry_id = tk.Entry(login_window, font=("Helvetica", 24), bg="#f0f0f0", fg="#333333", borderwidth=2, relief="flat")
+    entry_id.pack(pady=20)
+
+    tk.Label(login_window, text="Şifre:", font=("Helvetica", 24), bg="white", fg="#333333").pack()
+    entry_sifre = tk.Entry(login_window, show="*", font=("Helvetica", 24), bg="#f0f0f0", fg="#333333", borderwidth=2, relief="flat")
+    entry_sifre.pack(pady=20)
+
+    giris_buton = tk.Button(login_window, text="Giriş Yap", font=("Helvetica", 24), bg="red", fg="white", command=kontrol_et)
+    giris_buton.pack(pady=40)
+
+    # Buton hover efekti
+    def on_enter(e):
+        e.widget['background'] = '#cc0000'  # Fare üzerine gelince daha koyu kırmızı
+
+    def on_leave(e):
+        e.widget['background'] = 'red'  # Fare çekilince normal kırmızı
+
+    giris_buton.bind("<Enter>", on_enter)
+    giris_buton.bind("<Leave>", on_leave)
+
+    login_window.bind("<Return>", kontrol_et)
+    login_window.mainloop()
+
+# Ana menü ekranı (Daha modern bir arayüz)
+def ana_menu_ekrani():
+    ana_ekran = tk.Tk()
+    ana_ekran.title("Ana Menü")
+    ana_ekran.geometry("1280x1024")  # Sabit pencere boyutu
+    ana_ekran.configure(bg="white")
+
+    logo_photo = load_logo()
+    if logo_photo:
+        tk.Label(ana_ekran, image=logo_photo, bg="white").pack(pady=40)
+
+    # Güncel döviz kuru bilgisi
+    euro_kuru = get_euro_to_try()
+    if euro_kuru:
+        tk.Label(ana_ekran, text=f"Güncel Euro Kuru: {locale.format_string('%.2f', euro_kuru, grouping=True)} ₺", font=("Helvetica", 18), bg="white", fg="#333333").pack(pady=10)
+
+    tk.Label(ana_ekran, text="Ana Menü", font=("Helvetica", 48, "bold"), fg="red", bg="white").pack(pady=40)
+
+    button_frame = tk.Frame(ana_ekran, bg="white")
+    button_frame.pack(pady=20)
+
+    # Buton stili
+    button_style = {
+        "font": ("Helvetica", 24),
+        "bg": "red",
+        "fg": "white",
+        "activebackground": "#cc0000",
+        "width": 30,
+        "height": 2,
+        "borderwidth": 0,
+        "relief": "flat"
+    }
+
+    orijinal_buton = tk.Button(button_frame, text="Orijinal Yedek Parça", command=parca_sorgulama_ekrani, **button_style)
+    orijinal_buton.pack(pady=20)
+
+    muadil_buton = tk.Button(button_frame, text="Muadil Ürün", command=lambda: messagebox.showinfo("Bilgi", "Muadil Ürün Bilgi Sistemi"), **button_style)
+    muadil_buton.pack(pady=20)
+
+    cikis_buton = tk.Button(button_frame, text="Çıkış", font=("Helvetica", 24), bg="red", fg="white", command=ana_ekran.destroy)
+    cikis_buton.pack(pady=20)
+
+    # Buton hover efekti
+    def on_enter(e):
+        e.widget['background'] = '#cc0000'
+
+    def on_leave(e):
+        e.widget['background'] = 'red'
+
+    orijinal_buton.bind("<Enter>", on_enter)
+    orijinal_buton.bind("<Leave>", on_leave)
+    muadil_buton.bind("<Enter>", on_enter)
+    muadil_buton.bind("<Leave>", on_leave)
+    cikis_buton.bind("<Enter>", on_enter)
+    cikis_buton.bind("<Leave>", on_leave)
+
+    ana_ekran.mainloop()
+
+# Parça sorgulama ekranı (Daha modern bir arayüz)
+def parca_sorgulama_ekrani():
+    sorgulama_ekrani = tk.Toplevel()  # Yeni pencere
+    sorgulama_ekrani.title("Parça Sorgulama")
+    sorgulama_ekrani.geometry("1280x1024")  # Sabit pencere boyutu
+    sorgulama_ekrani.configure(bg="white")
+
+    # Otomatik tamamlama için parça kodları listesi
+    parca_verileri = load_parca_verileri()
+    parca_kodlari = [item.get("Parça Kodu", "").strip().upper() for item in parca_verileri] if parca_verileri else []
+
+    tk.Label(sorgulama_ekrani, text="Parça Sorgulama", font=("Helvetica", 36, "bold"), fg="red", bg="white").pack(pady=40)
+
+    entry_parca_kodu = ttk.Combobox(sorgulama_ekrani, font=("Helvetica", 24), values=parca_kodlari)
+    entry_parca_kodu.pack(pady=20)
+
+    sorgula_buton = tk.Button(sorgulama_ekrani, text="Sorgula", font=("Helvetica", 24), bg="red", fg="white", command=lambda: parca_fiyati_sorgula(entry_parca_kodu))
+    sorgula_buton.pack(pady=40)
+
+    # Buton hover efekti
+    def on_enter(e):
+        e.widget['background'] = '#cc0000'
+
+    def on_leave(e):
+        e.widget['background'] = 'red'
+
+    sorgula_buton.bind("<Enter>", on_enter)
+    sorgula_buton.bind("<Leave>", on_leave)
+
+# Uygulamayı başlat
+login()

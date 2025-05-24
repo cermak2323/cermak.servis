@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Makine Sorgulama{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg border-danger">
+                <div class="card-header bg-danger text-white py-3">
+                    <h3 class="mb-0">Makine Sorgulama</h3>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" name="serial_number" class="form-control form-control-lg" 
+                                   placeholder="Makine Seri Numarası" value="{{ request.args.get('serial_number', '') }}">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                        </div>
+                    </form>
+
+                    {% if machine %}
+                    <div class="card border-danger mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h4 class="mb-0">Makine Bilgileri</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-striped">
+                                        <tr>
+                                            <th>Seri Numarası:</th>
+                                            <td>{{ machine.serial_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Model:</th>
+                                            <td>{{ machine.model }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Müşteri:</th>
+                                            <td>{{ machine.owner_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Telefon:</th>
+                                            <td>{{ machine.phone_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Şehir:</th>
+                                            <td>{{ machine.city_rel.name if machine.city_rel else 'Belirtilmemiş' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Adres:</th>
+                                            <td>{{ machine.address }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- QR Kod Görüntüleme -->
+                                    {% if qr_code and qr_code.qr_code_url %}
+                                    <div class="text-center mb-3">
+                                        <img src="{{ url_for('static', filename=qr_code.qr_code_url) }}" 
+                                             alt="QR Kod" class="img-fluid" style="max-width: 200px;">
+                                        <p class="mt-2">Makine QR Kodu</p>
+                                        <a href="{{ url_for('static', filename=qr_code.qr_code_url) }}" 
+                                           class="btn btn-sm btn-outline-danger" download>
+                                            <i class="fas fa-download me-1"></i>QR Kodu İndir
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ekipman Bilgileri -->
+                    {% if machine.equipment %}
+                    <div class="card border-danger mb-4">
+                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Ekipman Bilgileri</h4>
+                            <a href="{{ url_for('machines.equipment_status', machine_id=machine.id) }}" 
+                               class="btn btn-light btn-sm">
+                                <i class="fas fa-edit me-1"></i>Ekipman Durumu Güncelle
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Tip</th>
+                                            <th>Alt Tip</th>
+                                            <th>Genişlik</th>
+                                            <th>Durum</th>
+                                            <th>Son Güncelleme</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for equipment in machine.equipment %}
+                                        <tr>
+                                            <td>{{ equipment.equipment_type }}</td>
+                                            <td>{{ equipment.subtype or '-' }}</td>
+                                            <td>{{ equipment.width|string + ' cm' if equipment.width else '-' }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ equipment.status_label }}">
+                                                    {{ equipment.status_text }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if equipment.updated_at %}
+                                                {{ equipment.updated_at.strftime('%d.%m.%Y %H:%M') }}
+                                                {% else %}
+                                                -
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dökümanlar ve Fotoğraflar -->
+                    <div class="card border-danger mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h4 class="mb-0">Dökümanlar ve Fotoğraflar</h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- Kayıt Belgesi -->
+                            {% if machine.registration_document %}
+                            <div class="mb-4">
+                                <h5 class="text-danger">Kayıt Belgesi</h5>
+                                <a href="{{ url_for('static', filename=machine.registration_document) }}" 
+                                   class="btn btn-outline-danger" target="_blank">
+                                    <i class="fas fa-file-pdf"></i> Kayıt Belgesini Görüntüle
+                                </a>
+                            </div>
+                            {% endif %}
+
+                            <!-- Fotoğraflar -->
+                            {% if machine.machine_photos %}
+                            <div>
+                                <h5 class="text-danger mb-3">Makine Fotoğrafları</h5>
+                                <div class="row">
+                                    {% for photo in machine.machine_photos %}
+                                    <div class="col-md-4 mb-3">
+                                        <a href="{{ url_for('static', filename=photo) }}" 
+                                           data-lightbox="machine-photos" class="d-block">
+                                            <img src="{{ url_for('static', filename=photo) }}" 
+                                                 alt="Makine Fotoğrafı" class="img-fluid rounded">
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Bakım Geçmişi -->
+                    <div class="card border-info mb-4">
+                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0"><i class="fas fa-history me-2"></i>Bakım Geçmişi</h4>
+                            <a href="{{ url_for('machines.machine_maintenance', machine_id=machine.id) }}" 
+                               class="btn btn-light btn-sm">
+                                <i class="fas fa-tools me-1"></i>Bakım Yönetimi
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Bakım Türü</th>
+                                            <th>Açıklama</th>
+                                            <th>Dökümanlar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for record in maintenance_records %}
+                                        <tr>
+                                            <td>{{ record.action_date.strftime('%d.%m.%Y') }}</td>
+                                            <td>
+                                                {% set badge_class = {
+                                                    '50_SAAT': 'primary',
+                                                    '250_SAAT': 'primary',
+                                                    '500_SAAT': 'primary',
+                                                    '750_SAAT': 'primary',
+                                                    '1000_SAAT': 'primary',
+                                                    'ARIZA_MEKANIK': 'danger',
+                                                    'ARIZA_HIDROLIK': 'danger',
+                                                    'ARIZA_ELEKTRIK': 'danger',
+                                                    'ARIZA_DIGER': 'danger',
+                                                    'GARANTI_DEGISIM': 'warning',
+                                                    'GARANTI_ONARIM': 'warning'
+                                                }.get(record.action_type, 'secondary') %}
+                                                <span class="badge bg-{{ badge_class }}">
+                                                    {{ record.action_type }}
+                                                </span>
+                                            </td>
+                                            <td>{{ record.description }}</td>
+                                            <td>
+                                                {% if record.invoice_file %}
+                                                <a href="{{ url_for('static', filename='uploads/maintenance/' + record.invoice_file) }}" 
+                                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </a>
+                                                {% endif %}
+                                                {% if record.part_image %}
+                                                <a href="{{ url_for('static', filename='uploads/maintenance/' + record.part_image) }}" 
+                                                   class="btn btn-sm btn-outline-info" target="_blank">
+                                                    <i class="fas fa-image"></i>
+                                                </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    {% if request.args.get('serial_number') %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Bu seri numarasına sahip makine bulunamadı.
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox2 CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block scripts %}
+<!-- Lightbox2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+{% endblock %}

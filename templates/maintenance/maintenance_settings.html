@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Bakım Ayarları - Cermak Servis{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-danger">Bakım Hatırlatma Ayarları</h2>
+
+    <div class="card border-danger mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Makine Bakım Aralıkları</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <ul class="mb-0">
+                    <li>TB215R, TB216, TB217R için bakımlar: 50, 250, 500, 750 ve 1000 saat</li>
+                    <li>Diğer tüm makineler için ilk bakım: 250 saat</li>
+                    <li>Sonraki bakımlar: 500, 750 ve 1000 saat</li>
+                </ul>
+            </div>
+
+            <form method="POST" action="{{ url_for('maintenance.save_reminder_settings') }}">
+                <input type="hidden" name="settings_count" value="{{ settings|length }}">
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Makine Tipi</th>
+                                <th>İlk Bakım (Saat)</th>
+                                <th>Sonraki Bakım Aralığı</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for setting in settings %}
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="setting_id_{{ loop.index }}" value="{{ setting.id }}">
+                                    {{ setting.machine_type }}
+                                </td>
+                                <td>{{ setting.first_maintenance_hours }}</td>
+                                <td>
+                                    <ul class="list-unstyled mb-0">
+                                        {% for interval in [500, 750, 1000] %}
+                                        <li>{{ interval }} Saat</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="is_active_{{ loop.index }}"
+                                               {% if setting.is_active %}checked{% endif %}>
+                                        <label class="form-check-label">Aktif</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

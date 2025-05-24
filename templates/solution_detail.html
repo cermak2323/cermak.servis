@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Çözüm Detay - {{ solution.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-3 text-danger" style="font-size: 1.5rem;">{{ solution.title }}</h2>
+
+        <!-- Çözüm bilgileri -->
+        <div class="card mb-3 border-danger">
+            <div class="card-body">
+                <p style="font-size: 0.9rem;"><strong>Makine Modeli:</strong> {{ solution.machine_model }}</p>
+                <p style="font-size: 0.9rem;"><strong>Arıza Tipi:</strong> {{ solution.fault_type }}</p>
+                <p style="font-size: 0.9rem;"><strong>Eklenme Tarihi:</strong> {{ solution.created_date.strftime('%d.%m.%Y %H:%M') }}</p>
+                <p style="font-size: 0.9rem;"><strong>Ekleyen:</strong> {{ solution.user.username if solution.user else 'Bilinmiyor' }}</p>
+            </div>
+        </div>
+
+        <!-- Çözüm açıklaması -->
+        <div class="card mb-3 border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-2" style="font-size: 1.2rem;">Açıklama</h5>
+                <p style="white-space: pre-line; font-size: 0.9rem;">{{ solution.description }}</p>
+            </div>
+        </div>
+
+        <!-- Medya -->
+        <div class="card mb-3 border-danger">
+            <div class="card-body text-center">
+                <h5 class="text-danger mb-2" style="font-size: 1.2rem;">Medya</h5>
+                {% if solution.media_files %}
+                <div class="mb-2">
+                    <h4 style="font-size: 1rem;">Medya Dosyaları:</h4>
+                    <div class="row">
+                        {% for media_file in solution.media_files.split(',') %}
+                            {% set media_file_clean = media_file.strip() %}
+                            {% if media_file_clean %}
+                                {% set file_ext = media_file_clean.rsplit('.', 1)[1].lower() if '.' in media_file_clean else '' %}
+                                {% set filename_only = media_file_clean.rsplit('/', 1)[-1].rsplit('_', 1)[-1] if '/' in media_file_clean else media_file_clean.rsplit('_', 1)[-1] %}
+                                <div class="col-md-4 mb-2 text-center">
+                                    {% if file_ext in ['png', 'jpg', 'jpeg'] %}
+                                        {% set media_url = url_for('static', filename=media_file_clean) %}
+                                        <a href="{{ media_url }}" target="_blank">
+                                            <img src="{{ media_url }}" class="img-thumbnail" alt="Çözüm görseli" style="max-width: 100px; max-height: 100px;">
+                                        </a>
+                                        <p class="text-muted small mt-1" style="font-size: 0.8rem;">{{ filename_only }}</p>
+                                    {% elif file_ext in ['mp4', 'mov'] %}
+                                        <video controls class="w-100" style="max-height: 100px;">
+                                            <source src="{{ url_for('static', filename=media_file_clean) }}" type="video/{{ 'mp4' if file_ext == 'mp4' else 'quicktime' }}">
+                                            Tarayıcınız video oynatmayı desteklemiyor.
+                                        </video>
+                                        <p class="text-muted small mt-1" style="font-size: 0.8rem;">{{ filename_only }}</p>
+                                    {% else %}
+                                        <p style="font-size: 0.9rem;">Desteklenmeyen dosya türü: {{ media_file_clean }}</p>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <p style="font-size: 0.9rem;">Geçersiz dosya yolu: {{ media_file }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                    <p style="font-size: 0.9rem;">Medya bulunmamaktadır.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Parça kodları -->
+        <div class="card mb-3 border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-2" style="font-size: 1.2rem;">Parça Kodları</h5>
+                {% if solution.part_codes %}
+                    <ul class="list-unstyled">
+                        {% for code in solution.part_codes.split(',') %}
+                            {% set code_clean = code.strip() %}
+                            <li style="font-size: 0.9rem;">
+                                {% if code_clean in part_map %}
+                                    <a href="{{ url_for('parts.part_detail', part_id=part_map[code_clean]) }}" class="text-decoration-none text-danger">{{ code_clean }}</a>
+                                {% else %}
+                                    {{ code_clean }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="font-size: 0.9rem;">Parça kodu bulunmamaktadır.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- İşlem butonları -->
+        <div class="text-center">
+            {% if current_user.permissions.can_add_solutions %}
+                <a href="{{ url_for('faults.edit_solution', solution_id=solution.id) }}" class="btn btn-warning me-2" style="font-size: 0.9rem;">Çözümü Düzenle</a>
+            {% endif %}
+            <a href="{{ url_for('faults.fault_search', query=query or '') }}" class="btn btn-outline-danger" style="font-size: 0.9rem;">Geri Dön</a>
+        </div>
+    </div>
+</div>
+<style>
+    .img-thumbnail {
+        border: 1px solid #ddd;
+        padding: 3px;
+        border-radius: 3px;
+    }
+    video {
+        max-height: 100px;
+    }
+</style>
+{% endblock %}

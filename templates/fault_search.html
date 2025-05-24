@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Arıza Çözümleri Ara{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="text-center mb-4 text-danger">Arıza Çözümleri Ara</h2>
+        <p class="text-center text-muted mb-4">Sorununuz için çözümleri arayın. Çözüm bulamazsanız arıza kaydı oluşturabilirsiniz.</p>
+        <form method="POST" action="{{ url_for('faults.fault_search') }}" class="mb-4">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <select class="form-control" name="machine_type" required>
+                        <option value="">Makine Tipini Seçin</option>
+                        {% for model in ['TB210R', 'TB016', 'TB215R', 'TB216', 'TB217R', 'TB225', 'TB325', 'TB235', 'TB235-2', 'TB138FR', 'TB240', 'TB240-2', 'TB250', 'TB153FR', 'TB260', 'TB260-2', 'TB285', 'TB290-2'] %}
+                            <option value="{{ model }}" {% if machine_type == model %}selected{% endif %}>{{ model }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="query" placeholder="Arıza veya çözüm ara..." value="{{ query or '' }}" required>
+                        <button type="submit" class="btn btn-danger">Ara</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        {% if solutions %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Açıklama</th>
+                            <th>Makine Modeli</th>
+                            <th>Arıza Tipi</th>
+                            <th>Parça Kodları</th>
+                            <th>Medya</th>
+                            <th>Eklenme Tarihi</th>
+                            {% if current_user.permissions.can_add_solutions %}
+                                <th>İşlem</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solution in solutions %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('faults.solution_detail', solution_id=solution.id, query=query) }}" class="text-decoration-none text-danger">
+                                        {{ solution.title }}
+                                    </a>
+                                </td>
+                                <td>{{ solution.description | truncate(100, True) }}</td>
+                                <td>{{ solution.machine_model }}</td>
+                                <td>{{ solution.fault_type }}</td>
+                                <td>
+                                    {% if solution.part_codes %}
+                                        {% for code in solution.part_codes.split(',') %}
+                                            {% set code_clean = code.strip() %}
+                                            {% if code_clean in part_map %}
+                                                <a href="{{ url_for('parts.part_detail', part_id=part_map[code_clean]) }}" class="text-decoration-none text-danger">{{ code_clean }}</a>
+                                            {% else %}
+                                                {{ code_clean }}
+                                            {% endif %}
+                                            {% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        Yok
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if solution.media_file %}
+                                        <a href="{{ url_for('static', filename=solution.media_file) }}" target="_blank">
+                                            {% if solution.media_file.endswith(('.png', '.jpg', '.jpeg')) %}
+                                                <img src="{{ url_for('static', filename=solution.media_file) }}" alt="Medya" style="max-width: 100px;">
+                                            {% else %}
+                                                <i class="bi bi-play-circle"></i> Video
+                                            {% endif %}
+                                        </a>
+                                    {% else %}
+                                        Yok
+                                    {% endif %}
+                                </td>
+                                <td>{{ solution.created_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                {% if current_user.permissions.can_add_solutions %}
+                                    <td>
+                                        <a href="{{ url_for('faults.edit_solution', solution_id=solution.id) }}" class="btn btn-sm btn-warning me-1">Düzenle</a>
+                                        <form action="{{ url_for('faults.delete_solution', solution_id=solution.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu çözümü silmek istediğinizden emin misiniz?');">
+                                            <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+                                        </form>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center">Henüz çözüm bulunamadı. <a href="{{ url_for('faults.new_fault_report') }}">Arıza kaydı oluştur</a>.</p>
+        {% endif %}
+        <div class="text-center mt-4">
+            <a href="{{ url_for('faults.new_fault_report') }}" class="btn btn-danger me-2">Arıza Kaydı Oluştur</a>
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-danger">Geri Dön</a>
+        </div>
+    </div>
+</div>
+<style>
+    .table-hover tbody tr:hover {
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+    .table th, .table td {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}

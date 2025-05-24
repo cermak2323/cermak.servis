@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Makine Bakım Kayıtları{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Makine Bilgileri -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>Makine Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Seri No:</label>
+                            <span class="fw-bold">{{ machine.serial_number }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Model:</label>
+                            <span>{{ machine.model }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Çalışma Saati:</label>
+                            <span>{{ machine.usage_hours }} saat</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Son Bakım:</label>
+                            <span>{{ machine.last_maintenance_date.strftime('%d.%m.%Y') if machine.last_maintenance_date else 'Bakım Kaydı Yok' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Sonraki Bakım:</label>
+                            <span>{{ machine.next_maintenance_hours }} saat</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yeni Bakım Kaydı -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Yeni Bakım Kaydı
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Bakım Türü</label>
+                                <select name="action_type" class="form-select" required>
+                                    <option value="">Bakım Türü Seçin</option>
+                                    <optgroup label="Periyodik Bakım">
+                                        <option value="50_SAAT">50 Saat Bakımı</option>
+                                        <option value="250_SAAT">250 Saat Bakımı</option>
+                                        <option value="500_SAAT">500 Saat Bakımı</option>
+                                        <option value="750_SAAT">750 Saat Bakımı</option>
+                                        <option value="1000_SAAT">1000 Saat Bakımı</option>
+                                    </optgroup>
+                                    <optgroup label="Arıza-Onarım">
+                                        <option value="ARIZA_MEKANIK">Mekanik Arıza</option>
+                                        <option value="ARIZA_HIDROLIK">Hidrolik Arıza</option>
+                                        <option value="ARIZA_ELEKTRIK">Elektrik Arızası</option>
+                                        <option value="ARIZA_DIGER">Diğer Arıza</option>
+                                    </optgroup>
+                                    <optgroup label="Garanti İşlemleri">
+                                        <option value="GARANTI_DEGISIM">Garanti Parça Değişimi</option>
+                                        <option value="GARANTI_ONARIM">Garanti Onarım</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Bakım Tarihi</label>
+                                <input type="date" name="action_date" class="form-control" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Bakım Açıklaması</label>
+                                <textarea name="description" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fatura</label>
+                                <input type="file" name="invoice_file" class="form-control" accept=".pdf">
+                                <small class="text-muted">PDF formatında fatura yükleyin</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Parça Fotoğrafı</label>
+                                <input type="file" name="part_image" class="form-control" accept="image/*">
+                                <small class="text-muted">Değişen parçaların fotoğrafını yükleyin</small>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>Bakım Kaydını Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bakım Geçmişi -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history me-2"></i>Bakım Geçmişi
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Bakım Türü</th>
+                            <th>Açıklama</th>
+                            <th>Dökümanlar</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in maintenance_records %}
+                        <tr>
+                            <td>{{ record.action_date.strftime('%d.%m.%Y') }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ record.action_type }}</span>
+                            </td>
+                            <td>{{ record.description }}</td>
+                            <td>
+                                {% if record.invoice_file %}
+                                <a href="{{ url_for('static', filename='uploads/maintenance/' + record.invoice_file) }}" 
+                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                {% endif %}
+                                {% if record.part_image %}
+                                <a href="{{ url_for('static', filename='uploads/maintenance/' + record.part_image) }}" 
+                                   class="btn btn-sm btn-outline-info" target="_blank">
+                                    <i class="fas fa-image"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('machines.delete_maintenance', machine_id=machine.id, record_id=record.id) }}"
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Bu bakım kaydını silmek istediğinize emin misiniz?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

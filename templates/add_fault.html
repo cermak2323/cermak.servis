@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}
+Yeni Arıza Ekle - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4 text-danger">Yeni Arıza Ekle</h2>
+        <div class="card border-danger">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('faults.add_fault') }}">
+                    <div class="mb-3">
+                        <label for="machine_serial" class="form-label">Makine Seri Numarası</label>
+                        <input type="text" class="form-control" id="machine_serial" name="machine_serial" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fault_description" class="form-label">Arıza Açıklaması</label>
+                        <textarea class="form-control" id="fault_description" name="fault_description" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Arıza Kaydet</button>
+                </form>
+            </div>
+        </div>
+        <a href="{{ url_for('faults.faults_view') }}" class="btn btn-outline-danger mt-3">Geri Dön</a>
+    </div>
+</div>
+{% endblock %}
