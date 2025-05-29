@@ -292,7 +292,7 @@ def create_user():
             can_view_maintenance=form.can_view_maintenance.data,
             can_edit_maintenance=form.can_edit_maintenance.data,
             can_view_faults=form.can_view_faults.data,
-            can_add_solutions=form.can_add_solutions.data,
+            can_add_fault_solutions=form.can_add_fault_solutions.data,
             can_view_contact=form.can_view_contact.data
         )
         db.session.add(permission)
@@ -506,7 +506,7 @@ def add_user():
                 'can_resolve_faults': True,
                 'can_add_fault_solutions': True,
                 'can_view_fault_history': True,
-                'can_add_solutions': True,
+                'can_add_fault_solutions': True,
                 'can_view_reports': True
             },
             'servis': {

@@ -67,11 +67,13 @@ class User(UserMixin, db.Model):
     # Relationships
     permissions = db.relationship('Permission', back_populates='user', uselist=False)
 
-    def __init__(self, username, password, role='user', email=None):
+    def __init__(self, username, password, role='user', email=None, created_at=None):
         self.username = username
         self.set_password(password)  # password hash'i güvenli şekilde oluştur
         self.role = role
         self.email = email or f"{username}@example.com"  # Default email if not provided
+        if created_at:
+            self.created_at = created_at
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -568,6 +570,31 @@ class MaintenanceReminderSettings(db.Model):
     @classmethod
     def get_maintenance_intervals(cls):
         return [500, 750, 1000]
+
+class Invoice(db.Model):
+    __tablename__ = 'invoices'
+    id = db.Column(db.Integer, primary_key=True)
+    invoice_number = db.Column(db.String(50), unique=True, nullable=False)
+    machine_id = db.Column(db.Integer, db.ForeignKey('machines.id'))
+    service_id = db.Column(db.Integer)
+    amount_eur = db.Column(db.Float, nullable=False)
+    issue_date = db.Column(db.DateTime, nullable=False)
+    document_url = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    status = db.Column(db.String(20), default='Beklemede')
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class InvoiceApproval(db.Model):
+    __tablename__ = 'invoice_approvals'
+    id = db.Column(db.Integer, primary_key=True)
+    invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    approved = db.Column(db.Boolean, default=False)
+    approved_at = db.Column(db.DateTime)
+    comment = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class MachineType(db.Model):
     __tablename__ = 'machine_types'

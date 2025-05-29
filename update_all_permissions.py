@@ -27,7 +27,8 @@ def update_all_permissions():
             "can_view_offers": True,
             "can_create_offers": True,
             "can_view_periodic_maintenance": True,
-            "can_view_contact": True
+            "can_view_contact": True,
+            "can_add_fault_solutions": True
         }
 
         muhendis_permissions = {
@@ -138,4 +139,4 @@ def update_all_permissions():
             print(f"Error updating permissions: {e}")
 
 if __name__ == '__main__':
-    update_all_permissions() 
+    update_all_permissions()

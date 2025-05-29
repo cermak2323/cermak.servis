@@ -15,7 +15,7 @@ class CreateUserForm(FlaskForm):
     can_view_maintenance = BooleanField('Bakım Görüntüleme')
     can_edit_maintenance = BooleanField('Bakım Düzenleme')
     can_view_faults = BooleanField('Arıza Görüntüleme')
-    can_add_solutions = BooleanField('Çözüm Ekleme')
+    can_add_fault_solutions = BooleanField('Çözüm Ekleme')
     can_view_contact = BooleanField('İletişim Görüntüleme')
     can_view_admin_panel = BooleanField('Admin Panel Görüntüleme')
     can_create_offers = BooleanField('Teklif Oluşturma')

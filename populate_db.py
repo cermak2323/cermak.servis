@@ -77,7 +77,7 @@ def populate_db():
                     Permission(
                         user_id=admin_user.id,
                         can_view_parts=True, can_edit_parts=True, can_view_faults=True,
-                        can_add_solutions=True, can_view_catalogs=True, can_view_maintenance=True,
+                        can_add_fault_solutions=True, can_view_catalogs=True, can_view_maintenance=True,
                         can_edit_maintenance=True, can_view_contact=True, can_view_purchase_prices=True,
                         can_view_warranty=True, can_view_accounting=True, can_view_periodic_maintenance=True
                     ),
@@ -87,7 +87,7 @@ def populate_db():
                     ),
                     Permission(
                         user_id=muhendis_user.id,
-                        can_view_parts=True, can_view_faults=True, can_add_solutions=True,
+                        can_view_parts=True, can_view_faults=True, can_add_fault_solutions=True,
                         can_view_catalogs=True, can_view_maintenance=True, can_view_contact=True,
                         can_view_warranty=True, can_view_accounting=True, can_view_periodic_maintenance=True
                     ),
@@ -322,9 +322,8 @@ def populate_db():
             else:
                 print("QRCode tablosu zaten dolu.")
 
-            # 13. Warranty section removedlendi.")
-            else:
-                print("Warranty tablosu zaten dolu.")
+            # 13. Warranty section - Bu bölüm şu an aktif değil
+            # Warranty tablosu kullanılmıyor, o yüzden atlıyoruz
 
             # 14. Invoice
             if not Invoice.query.first():
