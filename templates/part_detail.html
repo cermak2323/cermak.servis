@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Parça Detay - Cermak Servis Hizmetleri{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4 text-danger">{{ part.name }}</h2>
+
+        <!-- Parça bilgileri -->
+        <div class="card mb-4 border-danger">
+            <div class="card-body">
+                <p><strong>Parça Kodu:</strong> {{ part.part_code }}</p>
+                <p><strong>Değişen Parça Kodu:</strong> {{ part.alternate_part_code or '-' }}</p>
+                {% if current_user.permissions is not none and current_user.permissions.can_view_purchase_prices %}
+                    <p><strong>Alış Fiyatı (EUR):</strong> {{ part.price_eur }} EUR</p>
+                    <p><strong>Alış Fiyatı (TL):</strong> {{ "{:,.2f}".format(part.price_eur * exchange_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺</p>
+                {% endif %}
+                <p><strong>Satış Fiyatı (TL):</strong> {{ "{:,.2f}".format(part.price_eur * exchange_rate * 3).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺</p>
+                <p><strong>Son Güncelleme:</strong> {{ part.last_updated.strftime('%d.%m.%Y %H:%M') if part.last_updated else '-' }}</p>
+            </div>
+        </div>
+
+        <!-- Parça fotoğrafı -->
+        <div class="card mb-4 border-danger">
+            <div class="card-body text-center">
+                <h5 class="text-danger mb-3">Parça Fotoğrafı</h5>
+                {% if part.image_url %}
+                    <img src="{{ url_for('static', filename=part.image_url) }}" alt="{{ part.name }}" class="img-fluid rounded" style="max-height: 400px;">
+                {% else %}
+                    <p>Fotoğraf bulunmamaktadır.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Adminlere özel alanlar -->
+        {% if current_user.permissions is not none and current_user.permissions.can_edit_parts %}
+        <div class="card mb-4 border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-3">Fotoğraf Yükle</h5>
+                <form method="POST" action="{{ url_for('parts.upload_part_image', part_id=part.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-danger">Fotoğraf Yükle</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4 border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-3">Açıklama Ekle/Düzenle</h5>
+                <form method="POST" action="{{ url_for('parts.update_part_description', part_id=part.id) }}">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="description" rows="5" placeholder="Parça hakkında açıklama girin...">{{ part.description or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Açıklamayı Kaydet</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Mevcut açıklama -->
+        <div class="card border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-3">Açıklama</h5>
+                <p style="white-space: pre-line;">{{ part.description or 'Açıklama bulunmamaktadır.' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

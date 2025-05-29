@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Katalog Öğesi Ekle</title>
+</head>
+<body>
+    <h1>Katalog Öğesi Ekle</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label>Catalog ID:</label>
+        <input type="number" name="catalog_id" required><br>
+        <label>Ekskavatör Adı:</label>
+        <input type="text" name="name" required><br>
+        <label>Motor Parça Kataloğu:</label>
+        <input type="file" name="motor_pdf"><br>
+        <label>Yedek Parça Kataloğu:</label>
+        <input type="file" name="yedek_parca_pdf"><br>
+        <label>Operatör Manuel:</label>
+        <input type="file" name="operator_pdf"><br>
+        <label>Service Manuel:</label>
+        <input type="file" name="service_pdf"><br>
+        <button type="submit">Ekle</button>
+    </form>
+</body>
+</html>

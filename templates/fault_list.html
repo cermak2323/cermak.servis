@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}
+Arıza Bildirimleri Listesi
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="text-center mb-4 text-danger">Arıza Bildirimleri Listesi</h2>
+        <p class="text-center text-muted mb-4">Aşağıda arıza bildirimlerinizi görebilirsiniz. Sorununuz için bir çözüm aramak isterseniz <a href="{{ url_for('faults.fault_search') }}">Çözüm Ara</a> sayfasını ziyaret edebilirsiniz.</p>
+        
+        {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Makine Modeli</th>
+                            <th>Arıza Tipi</th>
+                            <th>Tanım</th>
+                            <th>Bildirim Tarihi</th>
+                            <th>Durum</th>
+                            <th>Çözümler</th>
+                            <th>Eylemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                            <tr>
+                                <td>{{ report.machine_model }}</td>
+                                <td>{{ report.fault_type }}</td>
+                                <td>{{ report.description | truncate(100, True) }}</td>
+                                <td>{{ report.reported_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>
+                                    {% if report.status == 'pending' %}
+                                        <span class="badge bg-warning">Beklemede</span>
+                                    {% elif report.status == 'in_progress' %}
+                                        <span class="badge bg-info">Devam Ediyor</span>
+                                    {% elif report.status == 'resolved' %}
+                                        <span class="badge bg-success">Çözüldü</span>
+                                    {% elif report.status == 'closed' %}
+                                        <span class="badge bg-secondary">Kapalı</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.solutions %}
+                                        <ul class="list-unstyled mb-0">
+                                            {% for solution in report.solutions %}
+                                                <li>
+                                                    <strong>{{ solution.title }}</strong>: {{ solution.description | truncate(50, True) }}
+                                                    {% if solution.media_file %}
+                                                        <a href="{{ url_for('static', filename=solution.media_file) }}" target="_blank" class="ms-1"><i class="bi bi-file-earmark"></i></a>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        Henüz çözüm eklenmedi
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if current_user.permissions is not none and current_user.permissions.can_add_solutions and report.status != 'closed' %}
+                                        <a href="{{ url_for('faults.add_solution', report_id=report.id) }}" class="btn btn-sm btn-danger">Çözüm Ekle</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center">Henüz arıza bildirimi yok. <a href="{{ url_for('faults.new_fault_report') }}">Yeni bir arıza bildirin</a>.</p>
+        {% endif %}
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('faults.fault_search') }}" class="btn btn-primary me-2">Çözüm Ara</a>
+            <a href="{{ url_for('faults.new_fault_report') }}" class="btn btn-danger me-2">Yeni Arıza Bildir</a>
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-danger">Geri Dön</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .list-unstyled li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}

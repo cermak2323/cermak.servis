@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ machine.serial_number }} - Makine Detayları{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Üst Bilgi Kartları -->
+    <div class="row g-4 mb-4">
+        <!-- Makine Bilgileri -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>Makine Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Seri No:</label>
+                            <span class="fw-bold">{{ machine.serial_number }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Model:</label>
+                            <span>{{ machine.model }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Sahibi:</label>
+                            <span>{{ machine.owner_name or '-' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Telefon:</label>
+                            <span>{{ machine.phone_number or '-' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Şehir:</label>
+                            <span>{{ machine.city or '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bakım Durumu -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>Bakım Durumu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Çalışma Saati:</label>
+                            <span>{{ machine.usage_hours }} saat</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Son Bakım:</label>
+                            <span>{{ machine.last_maintenance_date.strftime('%d.%m.%Y') if machine.last_maintenance_date else 'Bakım Kaydı Yok' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Son Bakım Saati:</label>
+                            <span>{{ machine.last_maintenance_hours }} saat</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Sonraki Bakım:</label>
+                            <span>{{ machine.next_maintenance_hours }} saat</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Bakım Durumu:</label>
+                            <span class="badge bg-{{ 'success' if machine.maintenance_status == 'OK' else 'warning' }}">
+                                {{ machine.maintenance_status }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('machines.machine_maintenance', machine_id=machine.id) }}" 
+                           class="btn btn-info btn-sm">
+                            <i class="fas fa-wrench me-1"></i>Bakım Yönetimi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ekipman Özeti -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-boxes me-2"></i>Ekipmanlar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="equipment-summary">
+                        {% for equipment in machine.equipment %}
+                        <div class="equipment-item mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ equipment.equipment_type }}</strong>
+                                    {% if equipment.subtype %}
+                                    - {{ equipment.subtype }}
+                                    {% endif %}
+                                    {% if equipment.width %}
+                                    ({{ equipment.width }}cm)
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-{{ equipment.status_label }}">
+                                    {{ equipment.status_text }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('machines.equipment_status', machine_id=machine.id) }}" 
+                           class="btn btn-success btn-sm">
+                            <i class="fas fa-edit me-1"></i>Ekipman Durumu Güncelle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Bakım Kayıtları -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history me-2"></i>Son Bakım Kayıtları
+            </h5>
+            <a href="{{ url_for('machines.machine_maintenance', machine_id=machine.id) }}" 
+               class="btn btn-light btn-sm">
+                <i class="fas fa-list me-1"></i>Tüm Kayıtlar
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Bakım Türü</th>
+                            <th>Açıklama</th>
+                            <th>Dökümanlar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in maintenance_records %}
+                        <tr>
+                            <td>{{ record.action_date.strftime('%d.%m.%Y') }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ record.action_type }}</span>
+                            </td>
+                            <td>{{ record.description }}</td>
+                            <td>
+                                {% if record.invoice_file %}
+                                <a href="{{ url_for('static', filename='uploads/maintenance/' + record.invoice_file) }}" 
+                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                {% endif %}
+                                {% if record.part_image %}
+                                <a href="{{ url_for('static', filename='uploads/maintenance/' + record.part_image) }}" 
+                                   class="btn btn-sm btn-outline-info" target="_blank">
+                                    <i class="fas fa-image"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

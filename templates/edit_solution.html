@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Çözüm Düzenle{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4 text-danger">Çözüm Düzenle</h2>
+        <form method="POST" action="{{ url_for('faults.edit_solution', solution_id=solution.id) }}" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="title" class="form-label">Çözüm Başlığı</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ solution.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="description" name="description" rows="5" required>{{ solution.description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="machine_model" class="form-label">Makine Modeli</label>
+                <select class="form-control" id="machine_model" name="machine_model" required>
+                    <option value="" disabled>Model seçin</option>
+                    {% for model in machine_models %}
+                        <option value="{{ model }}" {% if model == solution.machine_model %}selected{% endif %}>{{ model }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="fault_type" class="form-label">Arıza Tipi</label>
+                <select class="form-control" id="fault_type" name="fault_type" required>
+                    <option value="" disabled>Arıza tipi seçin</option>
+                    {% for type in fault_types %}
+                        <option value="{{ type }}" {% if type == solution.fault_type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="part_codes" class="form-label">Parça Kodları (Virgülle ayrılmış)</label>
+                <input type="text" class="form-control" id="part_codes" name="part_codes" value="{{ solution.part_codes or '' }}" placeholder="PC001,PC002">
+            </div>
+            <div class="mb-3">
+                <label for="media_file" class="form-label">Fotoğraf veya Video (Mevcut: {{ solution.media_file or 'Yok' }})</label>
+                <input type="file" class="form-control" id="media_file" name="media_file" accept=".png,.jpg,.jpeg,.mp4,.mov">
+            </div>
+            <button type="submit" class="btn btn-danger">Değişiklikleri Kaydet</button>
+            <a href="{{ url_for('faults.fault_search') }}" class="btn btn-outline-danger ms-2">İptal</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

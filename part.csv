@@ -1,0 +1,8 @@
+id,part_code,name,alternate_part_code,price_eur
+1,PC001,Filtre,PC001-C,10
+2,PC002,Yað Pompasý,PC002-C,20
+3,PC001-C,Filtre (Muadil),PC001,8
+4,PC002-C,Yað Pompasý (Muadil),PC002,15
+5,119305-35150,Motor Yað Filtresi,119305-35150-C,14
+6,Y129004-55801,Yakýt Filtresi,Y129004-55801-C,15
+7,15511-01300,Hidrolik Filtre,15511-01300-C,18

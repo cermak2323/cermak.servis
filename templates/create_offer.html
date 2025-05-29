@@ -1,0 +1,1046 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Yeni Periyodik Bakım Teklifi</h4>
+        </div>
+        <div class="card-body">
+            <form id="offerForm" method="POST" action="{{ url_for('periodic_maintenance.create_offer') }}" class="needs-validation" novalidate>
+                <!-- Hidden fields for form submission -->
+                <input type="hidden" id="labor_cost_hidden" name="labor_cost" value="0">
+                <input type="hidden" id="travel_cost_hidden" name="travel_cost" value="0">
+                <input type="hidden" name="selected_parts" id="selected_parts" value="[]">
+                
+                <!-- Adım Göstergesi -->
+                <div class="mb-4">
+                    <div class="progress" style="height: 3px;">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;" id="formProgress"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span class="step-indicator active" id="step1-indicator">1. Makine Bilgileri</span>
+                        <span class="step-indicator" id="step2-indicator">2. Müşteri Bilgileri</span>
+                        <span class="step-indicator" id="step3-indicator">3. Bakım Detayları</span>
+                        <span class="step-indicator" id="step4-indicator">4. Yedek Parça Ekle</span>
+                        <span class="step-indicator" id="step5-indicator">5. Maliyet Bilgileri</span>
+                    </div>
+                </div>
+
+                <!-- Adım 1: Makine Bilgileri -->
+                <div class="form-step" id="step1">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="serial_number" class="form-label">Makine Seri Numarası*</label>
+                            <input type="text" class="form-control" id="serial_number" name="serial_number" required>
+                            <div class="invalid-feedback">Seri numarası gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="machine_model" class="form-label">Makine Modeli*</label>
+                            <select class="form-select" id="machine_model" name="machine_model" required>
+                                <option value="">Model Seçin</option>
+                                {% for model in machine_models %}
+                                <option value="{{ model }}">{{ model }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Model seçimi gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="maintenance_interval" class="form-label">Bakım Aralığı*</label>
+                            <select class="form-select" id="maintenance_interval" name="maintenance_interval" required>
+                                <option value="">Bakım Aralığı Seçin</option>
+                                <option value="50 Saatlik Bakım">50 Saatlik Bakım</option>
+                                <option value="250 Saatlik Bakım">250 Saatlik Bakım</option>
+                                <option value="500 Saatlik Bakım">500 Saatlik Bakım</option>
+                                <option value="1000 Saatlik Bakım">1000 Saatlik Bakım</option>
+                                <option value="2000 Saatlik Bakım">2000 Saatlik Bakım</option>
+                            </select>
+                            <div class="invalid-feedback">Bakım aralığı seçimi gereklidir</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adım 2: Müşteri Bilgileri -->
+                <div class="form-step d-none" id="step2">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="customer_first_name" class="form-label">Müşteri Adı*</label>
+                            <input type="text" class="form-control" id="customer_first_name" name="customer_first_name" required>
+                            <div class="invalid-feedback">Müşteri adı gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="customer_last_name" class="form-label">Müşteri Soyadı*</label>
+                            <input type="text" class="form-control" id="customer_last_name" name="customer_last_name" required>
+                            <div class="invalid-feedback">Müşteri soyadı gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="company_name" class="form-label">Şirket Adı*</label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" required>
+                            <div class="invalid-feedback">Şirket adı gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Telefon*</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" pattern="[0-9]{10,11}" required>
+                            <div class="invalid-feedback">Geçerli bir telefon numarası giriniz</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adım 3: Bakım Detayları -->
+                <div class="form-step d-none" id="step3">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Filtre Türü Seçimi*</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filter_type" id="original_filter" value="original" required>
+                                <label class="form-check-label" for="original_filter">Orijinal Filtre</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filter_type" id="alternate_filter" value="alternate">
+                                <label class="form-check-label" for="alternate_filter">Muadil Filtre</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtreler Tablosu -->
+                        <div class="col-12">
+                            <h5>Filtreler</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="partsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Parça Kodu</th>
+                                            <th>Açıklama</th>
+                                            <th>Adet</th>
+                                            <th>Birim Fiyat (TL)</th>
+                                            <th>Toplam (TL)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="partsTableBody">
+                                        <!-- JavaScript ile doldurulacak -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Yağlar Bölümü -->
+                        <div class="col-12 mt-4">
+                            <h5>Yağlar</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="oilsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Seç</th>
+                                            <th>Yağ Tipi</th>
+                                            <th>Birim Fiyat (EUR)</th>
+                                            <th>Birim Fiyat (TL)</th>
+                                            <th>Miktar (Lt)</th>
+                                            <th>Toplam (TL)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for oil in oils %}
+                                        <tr>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input oil-checkbox" 
+                                                           name="oil_selected_{{ oil.id }}" 
+                                                           data-oil-id="{{ oil.id }}"
+                                                           data-oil-name="{{ oil.name }}"
+                                                           data-oil-price-eur="{{ oil.price_eur }}"
+                                                           data-oil-price-tl="{{ oil.get_price_tl(exchange_rates.EUR.sell) }}"
+                                                           id="oil_{{ oil.id }}">
+                                                </div>
+                                            </td>
+                                            <td>{{ oil.name }}</td>
+                                            <td class="text-end">{{ "%.2f"|format(oil.price_eur) }} EUR</td>
+                                            <td class="text-end">{{ "%.2f"|format(oil.get_price_tl(exchange_rates.EUR.sell)) }} TL</td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" class="form-control form-control-sm oil-quantity"
+                                                           name="oil_quantity_{{ oil.id }}"
+                                                           value="1" min="1" step="1"
+                                                           data-oil-id="{{ oil.id }}"
+                                                           data-price-eur="{{ oil.price_eur }}"
+                                                           data-price-tl="{{ oil.get_price_tl(exchange_rates.EUR.sell) }}"
+                                                           disabled>
+                                                    <span class="input-group-text">Lt</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-end oil-total">0.00 TL</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="5" class="text-end"><strong>Toplam:</strong></td>
+                                            <td class="text-end" id="oilsTotal">0.00 TL</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adım 4: Yedek Parça Ekle -->
+                <div class="form-step d-none" id="step4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Yedek Parça Ara ve Ekle</label>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="partSearchInput" placeholder="Parça kodu veya adı ile ara...">
+                                <button class="btn btn-danger" type="button" id="partSearchBtn">Ara</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="partsSearchTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Parça Kodu</th>
+                                            <th>Parça Adı</th>
+                                            <th>Satış Fiyatı (TRY)</th>
+                                            <th>Adet</th>
+                                            <th>Ekle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- JS ile doldurulacak -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <h5>Seçilen Parçalar</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="selectedPartsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Parça Kodu</th>
+                                            <th>Parça Adı</th>
+                                            <th>Satış Fiyatı (TRY)</th>
+                                            <th>Adet</th>
+                                            <th>Kaldır</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- JS ile doldurulacak -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2 mb-4 text-center">
+                            <button type="button" class="btn btn-lg btn-warning fw-bold shadow" id="addConsumableBtn" style="font-size:1.2rem;letter-spacing:1px;">+ Sarf Malzeme Ekle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adım 5: Maliyet Bilgileri -->
+                <div class="form-step d-none" id="step5">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="labor_cost" class="form-label">İşçilik Ücreti (TL)*</label>
+                            <input type="number" step="0.01" class="form-control" id="labor_cost" name="labor_cost" required>
+                            <div class="invalid-feedback">İşçilik ücreti gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="travel_cost" class="form-label">Yol Ücreti (TL)*</label>
+                            <input type="number" step="0.01" class="form-control" id="travel_cost" name="travel_cost" required>
+                            <div class="invalid-feedback">Yol ücreti gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="discount_type" class="form-label">İskonto Türü</label>
+                            <select class="form-select" id="discount_type" name="discount_type">
+                                <option value="none">İskonto Yok</option>
+                                <option value="percentage">Yüzde (%)</option>
+                                <option value="amount">Tutar (TL)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="discount_value" class="form-label">İskonto Değeri</label>
+                            <input type="number" step="0.01" class="form-control" id="discount_value" name="discount_value" value="0">
+                        </div>
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Toplam Maliyet Özeti</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p>Filtre Maliyeti: <span id="totalPartsCost">0.00 TL</span></p>
+                                            <p>Yağ Maliyeti: <span id="totalOilsCost">0.00 TL</span></p>
+                                            <p>İşçilik Ücreti: <span id="totalLaborCost">0.00 TL</span></p>
+                                            <p>Yol Ücreti: <span id="totalTravelCost">0.00 TL</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p>Ara Toplam: <span id="subtotal">0.00 TL</span></p>
+                                            <p>İskonto: <span id="discountAmount">0.00 TL</span></p>
+                                            <h4>Genel Toplam: <span id="grandTotal">0.00 TL</span></h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Kontrol Butonları -->
+                <div class="mt-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">Geri</button>
+                    <button type="button" class="btn btn-primary" id="nextBtn">İleri</button>
+                    <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">Teklif Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sarf Malzeme Modalı -->
+<div class="modal fade" id="consumableModal" tabindex="-1" aria-labelledby="consumableModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="consumableModalLabel">Sarf Malzeme Ekle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="consumableCode" class="form-label">Parça Kodu*</label>
+          <input type="text" class="form-control" id="consumableCode" required>
+        </div>
+        <div class="mb-3">
+          <label for="consumableName" class="form-label">Malzeme Adı*</label>
+          <input type="text" class="form-control" id="consumableName" required>
+        </div>
+        <div class="mb-3">
+          <label for="consumablePrice" class="form-label">Birim Fiyat (TL)*</label>
+          <input type="number" step="0.01" class="form-control" id="consumablePrice" required>
+        </div>
+        <div class="mb-3">
+          <label for="consumableQuantity" class="form-label">Adet</label>
+          <input type="number" min="1" value="1" class="form-control" id="consumableQuantity">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" id="saveConsumableBtn">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Form JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 5;
+    const form = document.getElementById('offerForm');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressBar = document.getElementById('formProgress');
+    const filterTypeRadios = document.getElementsByName('filter_type');
+
+    // Filtre türü seçimi değiştiğinde parçaları yeniden yükle
+    filterTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            loadMaintenanceParts();
+        });
+    });
+
+    // Form doğrulama
+    function validateStep(step) {
+        let isValid = true;
+        const currentStepDiv = document.getElementById(`step${step}`);
+        const requiredFields = currentStepDiv.querySelectorAll('[required]');
+
+        requiredFields.forEach(field => {
+            if (!field.value) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        // Adım 3 için özel kontrol (filtre türü seçimi)
+        if (step === 3) {
+            const filterTypeSelected = Array.from(filterTypeRadios).some(radio => radio.checked);
+            if (!filterTypeSelected) {
+                isValid = false;
+                document.querySelector('.form-check-input[name="filter_type"]').classList.add('is-invalid');
+                alert('Lütfen filtre türünü seçin (Orijinal/Muadil)');
+            }
+        }
+
+        return isValid;
+    }
+
+    // Parçaları yükle
+    async function loadMaintenanceParts() {
+        const machineModel = document.getElementById('machine_model').value;
+        const maintenanceInterval = document.getElementById('maintenance_interval').value;
+        const filterType = Array.from(filterTypeRadios).find(radio => radio.checked)?.value;
+
+        console.log('Yükleme parametreleri:', { machineModel, maintenanceInterval, filterType });
+
+        if (!machineModel || !maintenanceInterval || !filterType) {
+            document.getElementById('partsTableBody').innerHTML = '<tr><td colspan="5" class="text-center">Lütfen tüm gerekli alanları doldurun ve filtre türünü seçin.</td></tr>';
+            return;
+        }
+
+        try {
+            const url = `/periodic_maintenance/get_maintenance_parts?machine_model=${encodeURIComponent(machineModel)}&maintenance_interval=${encodeURIComponent(maintenanceInterval)}&filter_type=${encodeURIComponent(filterType)}`;
+            console.log('API çağrısı URL:', url);
+
+            const response = await fetch(url);
+            console.log('API yanıt durumu:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('API yanıtı:', data);
+
+            if (data.error) {
+                document.getElementById('partsTableBody').innerHTML = `<tr><td colspan="5" class="text-center text-danger">${data.error}</td></tr>`;
+                return;
+            }
+
+            if (!data.parts || !Array.isArray(data.parts)) {
+                throw new Error('Geçersiz API yanıtı: parts dizisi bulunamadı');
+            }
+
+            const tbody = document.getElementById('partsTableBody');
+            tbody.innerHTML = '';
+
+            data.parts.forEach((part, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${part.part_code || ''}</td>
+                    <td>${part.name || ''}</td>
+                    <td>1</td>
+                    <td class="text-end">${(part.price_tl || 0).toFixed(2)} TL</td>
+                    <td class="text-end">${(part.price_tl || 0).toFixed(2)} TL</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            updateTotals();
+        } catch (error) {
+            console.error('Parçalar yüklenirken detaylı hata:', error);
+            document.getElementById('partsTableBody').innerHTML = `<tr><td colspan="5" class="text-center text-danger">Parçalar yüklenirken bir hata oluştu: ${error.message}</td></tr>`;
+        }
+    }
+
+    // İleri butonu tıklandığında
+    nextBtn.addEventListener('click', function() {
+        if (validateStep(currentStep)) {
+            document.getElementById(`step${currentStep}`).classList.add('d-none');
+            currentStep++;
+            document.getElementById(`step${currentStep}`).classList.remove('d-none');
+            
+            // Adım 3'e gelindiğinde parçaları yükle
+            if (currentStep === 3) {
+                loadMaintenanceParts();
+            }
+
+            updateButtons();
+            updateProgress();
+        }
+    });
+
+    // Geri butonu tıklandığında
+    prevBtn.addEventListener('click', function() {
+        document.getElementById(`step${currentStep}`).classList.add('d-none');
+        currentStep--;
+        document.getElementById(`step${currentStep}`).classList.remove('d-none');
+        updateButtons();
+        updateProgress();
+    });
+
+    // Butonları güncelle
+    function updateButtons() {
+        prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
+        nextBtn.style.display = currentStep === totalSteps ? 'none' : 'block';
+        submitBtn.style.display = currentStep === totalSteps ? 'block' : 'none';
+    }
+
+    // İlerleme çubuğunu güncelle
+    function updateProgress() {
+        const percent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${percent}%`;
+        
+        // Adım göstergelerini güncelle
+        for (let i = 1; i <= totalSteps; i++) {
+            const indicator = document.getElementById(`step${i}-indicator`);
+            if (i < currentStep) {
+                indicator.classList.add('completed');
+                indicator.classList.remove('active');
+            } else if (i === currentStep) {
+                indicator.classList.add('active');
+                indicator.classList.remove('completed');
+            } else {
+                indicator.classList.remove('active', 'completed');
+            }
+        }
+    }
+
+    // Toplam tutarları güncelle
+    function updateTotals() {
+        console.log('Updating totals...');
+        
+        // Yedek Parça Maliyeti (4. adımda seçilenler)
+        let partsTotal = 0;
+        console.log('Selected parts:', selectedParts);
+        
+        selectedParts.forEach((part, index) => {
+            let price = 0;
+            
+            // Debug başlangıç
+            console.log(`Toplam hesaplama - Part ${index + 1} (${part.part_code}):`, {
+                price_try: part.price_try,
+                price_eur: part.price_eur,
+                is_consumable: part.is_consumable || false
+            });
+            
+            // Önce TL fiyatını kontrol et
+            if (part.price_try !== undefined && part.price_try !== null && part.price_try !== 0) {
+                price = typeof part.price_try === 'string' 
+                    ? parseFloat(part.price_try.toString().replace(',', '.')) 
+                    : parseFloat(part.price_try);
+            } 
+            // TL fiyatı yoksa EUR fiyatını TL'ye çevir
+            else if (part.price_eur !== undefined && part.price_eur !== null && part.price_eur !== 0) {
+                const eurRate = parseFloat('{{ exchange_rates.EUR.sell }}') || 34.0;
+                const eurPrice = typeof part.price_eur === 'string' 
+                    ? parseFloat(part.price_eur.toString().replace(',', '.'))
+                    : parseFloat(part.price_eur);
+                price = eurPrice * eurRate;
+                // TL fiyatını kaydet
+                part.price_try = price;
+            }
+            
+            // Fiyat kontrolü
+            if (isNaN(price) || price < 0) {
+                console.warn('Geçersiz fiyat tespit edildi, 0 yapılıyor:', part);
+                price = 0;
+            }
+            
+            const quantity = parseInt(part.quantity) || 1;
+            const partTotal = price * quantity;
+            
+            console.log(`Toplam hesaplama sonucu - Part ${index + 1}:`, {
+                code: part.part_code,
+                name: part.name,
+                final_price: price,
+                quantity: quantity,
+                total: partTotal
+            });
+            
+            partsTotal += partTotal;
+        });
+
+        // Yağların toplamını hesapla
+        let oilsTotal = 0;
+        document.querySelectorAll('.oil-checkbox:checked').forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            const quantityInput = row.querySelector('.oil-quantity');
+            const priceTL = parseFloat(quantityInput.dataset.priceTl) || 0;
+            const quantity = parseInt(quantityInput.value) || 0;
+            const total = priceTL * quantity;
+            
+            console.log('Oil:', {
+                name: row.querySelector('td:nth-child(1)').textContent,
+                priceTL: priceTL,
+                quantity: quantity,
+                total: total
+            });
+            
+            oilsTotal += total;
+        });
+
+        // İşçilik ve yol ücretlerini al
+        const laborCost = parseFloat(document.getElementById('labor_cost').value) || 0;
+        const travelCost = parseFloat(document.getElementById('travel_cost').value) || 0;
+
+        // Ara toplamı hesapla
+        const subtotal = partsTotal + oilsTotal + laborCost + travelCost;
+
+        // İskonto hesapla
+        let discountAmount = 0;
+        const discountType = document.getElementById('discount_type').value;
+        const discountValue = parseFloat(document.getElementById('discount_value').value) || 0;
+
+        if (discountType === 'percentage') {
+            discountAmount = subtotal * (discountValue / 100);
+        } else if (discountType === 'amount') {
+            discountAmount = Math.min(discountValue, subtotal); // İskonto miktarı toplamı geçemez
+        }
+
+        // KDV ve genel toplamı hesapla
+        const discountedTotal = Math.max(0, subtotal - discountAmount); // Negatif olmamalı
+        const kdv = discountedTotal * 0.20;
+        const grandTotal = discountedTotal + kdv;
+
+        // Debug logları
+        console.log('Calculated values:', {
+            partsTotal: partsTotal,
+            oilsTotal: oilsTotal,
+            laborCost: laborCost,
+            travelCost: travelCost,
+            subtotal: subtotal,
+            discountAmount: discountAmount,
+            discountedTotal: discountedTotal,
+            kdv: kdv,
+            grandTotal: grandTotal
+        });
+
+        // Toplamları göster
+        const formatNumber = (num) => {
+            return num.toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+        };
+
+        document.getElementById('totalPartsCost').textContent = formatNumber(partsTotal) + ' TL';
+        document.getElementById('totalOilsCost').textContent = formatNumber(oilsTotal) + ' TL';
+        document.getElementById('totalLaborCost').textContent = formatNumber(laborCost) + ' TL';
+        document.getElementById('totalTravelCost').textContent = formatNumber(travelCost) + ' TL';
+        document.getElementById('subtotal').textContent = formatNumber(subtotal) + ' TL';
+        document.getElementById('discountAmount').textContent = formatNumber(discountAmount) + ' TL';
+        document.getElementById('grandTotal').textContent = formatNumber(grandTotal) + ' TL';
+        
+        // Form gönderimi için hidden alanları güncelle
+        document.getElementById('labor_cost_hidden').value = laborCost;
+        document.getElementById('travel_cost_hidden').value = travelCost;
+    }
+
+    // İşçilik ve yol ücreti değiştiğinde toplamları güncelle
+    document.getElementById('labor_cost').addEventListener('input', updateTotals);
+    document.getElementById('travel_cost').addEventListener('input', updateTotals);
+
+    // İskonto değiştiğinde toplamları güncelle
+    document.getElementById('discount_type').addEventListener('change', updateTotals);
+    document.getElementById('discount_value').addEventListener('input', updateTotals);
+
+    // Yağ seçimi ve miktarı değiştiğinde
+    document.querySelectorAll('.oil-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const row = this.closest('tr');
+            const quantityInput = row.querySelector('.oil-quantity');
+            quantityInput.disabled = !this.checked;
+            if (this.checked) {
+                quantityInput.value = '1';
+            }
+            updateTotals();
+        });
+    });
+
+    document.querySelectorAll('.oil-quantity').forEach(input => {
+        input.addEventListener('input', updateTotals);
+    });
+
+    // Form gönderilmeden önce son kontrol ve selected_parts inputunu ekle
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        // HIDDEN INPUT EKLEME
+        let hiddenInput = document.getElementById('selectedPartsInput');
+        if (!hiddenInput) {
+            hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'selected_parts';
+            hiddenInput.id = 'selectedPartsInput';
+            form.appendChild(hiddenInput);
+        }
+        hiddenInput.value = JSON.stringify(selectedParts);
+
+        // VALIDASYON
+        if (validateStep(currentStep)) {
+            this.submit();
+        }
+    });
+
+    // Yedek Parça Ekleme (4. Adım) için JS
+    let selectedParts = [];
+
+    function renderSelectedPartsTable() {
+        const tbody = document.querySelector('#selectedPartsTable tbody');
+        tbody.innerHTML = '';
+        
+        if (selectedParts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Henüz parça eklenmedi</td></tr>';
+            return;
+        }
+        
+        // Get current EUR rate from the template or use a default value
+        const eurRate = parseFloat('{{ exchange_rates.EUR.sell }}') || 1;
+        
+        console.log('Seçili parçalar tablosu güncelleniyor:', selectedParts);
+        
+        selectedParts.forEach((part, idx) => {
+            // Calculate price in TRY
+            let price = 0;
+            
+            // Debug başlangıç değerleri
+            console.log(`Parça işleniyor - ${part.part_code}:`, {
+                price_try: part.price_try,
+                price_eur: part.price_eur,
+                is_consumable: part.is_consumable
+            });
+            
+            // Önce TRY fiyatını kontrol et
+            if (part.price_try !== undefined && part.price_try !== null && part.price_try !== 0) {
+                price = typeof part.price_try === 'string' 
+                    ? parseFloat(part.price_try.toString().replace(',', '.')) 
+                    : parseFloat(part.price_try);
+            } 
+            // TRY fiyatı yoksa EUR fiyatını TL'ye çevir
+            else if (part.price_eur !== undefined && part.price_eur !== null && part.price_eur !== 0) {
+                const eurPrice = typeof part.price_eur === 'string' 
+                    ? parseFloat(part.price_eur.toString().replace(',', '.')) || 0
+                    : parseFloat(part.price_eur) || 0;
+                price = eurPrice * eurRate;
+                // TL fiyatını kaydet
+                part.price_try = price;
+            }
+            
+            // Fiyat kontrolü
+            if (isNaN(price) || price <= 0) {
+                console.warn('Geçersiz fiyat tespit edildi, 0 yapılıyor:', part);
+                price = 0;
+            }
+            
+            // Debug fiyat hesaplama sonucu
+            console.log(`Parça fiyat hesaplama sonucu - ${part.part_code}:`, {
+                calculated_price: price,
+                eurRate: eurRate
+            });
+            
+            // Format the price for display
+            const formattedPrice = price.toFixed(2).replace('.', ',');
+            const quantity = parseInt(part.quantity) || 1;
+            const total = (price * quantity).toFixed(2).replace('.', ',');
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${part.part_code || 'BELİRTİLMEDİ'}</td>
+                <td>${part.name || 'İsimsiz Ürün'}</td>
+                <td class="text-end">${formattedPrice} ₺</td>
+                <td style="width: 120px;">
+                    <div class="input-group input-group-sm">
+                        <input type="number" 
+                               min="1" 
+                               value="${quantity}" 
+                               class="form-control form-control-sm part-quantity-input" 
+                               data-idx="${idx}"
+                               style="text-align: center;">
+                        <span class="input-group-text">adet</span>
+                    </div>
+                </td>
+                <td class="text-end" style="width: 100px;">
+                    ${total} ₺
+                </td>
+                <td style="width: 100px;">
+                    <button type="button" 
+                            class="btn btn-danger btn-sm remove-part-btn w-100" 
+                            data-idx="${idx}"
+                            title="Parçayı kaldır">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // Miktar değişikliklerini dinle
+        document.querySelectorAll('.part-quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const idx = parseInt(this.dataset.idx);
+                const newQuantity = parseInt(this.value) || 1;
+                if (newQuantity < 1) {
+                    this.value = 1;
+                    selectedParts[idx].quantity = 1;
+                } else {
+                    selectedParts[idx].quantity = newQuantity;
+                }
+                updateTotals();
+                renderSelectedPartsTable(); // Tabloyu yeniden çiz
+            });
+        });
+        
+        // Toplamları güncelle
+        updateTotals();
+        
+        // Formdaki selected_parts hidden alanını güncelle
+        document.querySelector('input[name="selected_parts"]').value = JSON.stringify(selectedParts);
+    }
+
+    // Parça arama
+    const partSearchBtn = document.getElementById('partSearchBtn');
+    const partSearchInput = document.getElementById('partSearchInput');
+    const partsSearchTableBody = document.querySelector('#partsSearchTable tbody');
+
+    partSearchBtn.addEventListener('click', async function() {
+        const query = partSearchInput.value.trim();
+        if (!query) return;
+        partsSearchTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Aranıyor...</td></tr>';
+        const resp = await fetch(`/parts/parts/search?q=${encodeURIComponent(query)}`);
+        const data = await resp.json();
+        if (data.results && data.results.length > 0) {
+            // Get current EUR rate from the template or use a default value
+            const eurRate = parseFloat('{{ exchange_rates.EUR.sell }}') || 1;
+            
+            partsSearchTableBody.innerHTML = '';
+            data.results.forEach(part => {
+                // Calculate price in TRY
+                let price = 0;
+                let priceText = '0,00 ₺';
+                
+                if (part.price_try !== undefined && part.price_try !== null) {
+                    price = typeof part.price_try === 'string' 
+                        ? parseFloat(part.price_try.toString().replace(',', '.')) 
+                        : parseFloat(part.price_try);
+                } 
+                else if (part.price_eur !== undefined && part.price_eur !== null) {
+                    const eurPrice = typeof part.price_eur === 'string' 
+                        ? parseFloat(part.price_eur.toString().replace(',', '.')) || 0
+                        : parseFloat(part.price_eur) || 0;
+                    price = eurPrice * eurRate;
+                }
+                
+                // Format the price for display
+                if (!isNaN(price) && price > 0) {
+                    priceText = price.toFixed(2).replace(/\.?0+$/, '').replace('.', ',') + ' ₺';
+                }
+                
+                // Debug price calculation
+                console.log('Parça fiyat hesaplama:', {
+                    part_code: part.part_code,
+                    name: part.name,
+                    price_try: part.price_try,
+                    price_eur: part.price_eur,
+                    calculated_price: price,
+                    formatted_price: priceText
+                });
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${part.part_code || 'BELİRTİLMEDİ'}</td>
+                    <td>${part.name || 'İsimsiz Ürün'}</td>
+                    <td class="text-end">${priceText}</td>
+                    <td><input type="number" min="1" value="1" class="form-control form-control-sm part-search-quantity"></td>
+                    <td><button type="button" class="btn btn-success btn-sm add-part-btn">Ekle</button></td>
+                `;
+                row.addEventListener('click', () => {
+                    const quantity = row.querySelector('.part-search-quantity').value;
+                    const eurRate = parseFloat('{{ exchange_rates.EUR.sell }}') || 1;
+                    
+                    // Calculate price in TRY if not already available
+                    let priceTry = part.price_try;
+                    if ((!priceTry || priceTry === 0) && part.price_eur) {
+                        const eurPrice = typeof part.price_eur === 'string' 
+                            ? parseFloat(part.price_eur.toString().replace(',', '.')) || 0
+                            : parseFloat(part.price_eur) || 0;
+                        priceTry = eurPrice * eurRate;
+                    }
+                    
+                    // Debug price calculation before adding to selectedParts
+                    console.log('Parça eklenirken fiyat hesaplama:', {
+                        part_code: part.part_code,
+                        name: part.name,
+                        price_try_original: part.price_try,
+                        price_eur: part.price_eur,
+                        calculated_price_try: priceTry,
+                        quantity: parseInt(quantity) || 1
+                    });
+                    
+                    selectedParts.push({
+                        part_code: part.part_code,
+                        name: part.name,
+                        price_eur: part.price_eur,
+                        price_try: priceTry, // Store the calculated TRY price
+                        quantity: parseInt(quantity) || 1
+                    });
+                    
+                    renderSelectedPartsTable();
+                    // Clear search results after adding
+                    partsSearchTableBody.innerHTML = '';
+                    partSearchInput.value = '';
+                });
+                partsSearchTableBody.appendChild(row);
+            });
+        } else {
+            partsSearchTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Sonuç bulunamadı.</td></tr>';
+        }
+    });
+
+    // Seçilen parçalarda adet değişikliği ve kaldırma
+    const selectedPartsTable = document.getElementById('selectedPartsTable');
+    selectedPartsTable.addEventListener('input', function(e) {
+        if (e.target.classList.contains('part-quantity-input')) {
+            const idx = e.target.dataset.idx;
+            selectedParts[idx].quantity = parseInt(e.target.value) || 1;
+            triggerPartsTotalUpdate();
+        }
+    });
+    selectedPartsTable.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-part-btn')) {
+            const idx = e.target.dataset.idx;
+            selectedParts.splice(idx, 1);
+            renderSelectedPartsTable();
+            triggerPartsTotalUpdate();
+        }
+    });
+
+    // 4. adımda parça eklendiğinde de tetikle
+    partSearchBtn.addEventListener('click', function() {
+        setTimeout(triggerPartsTotalUpdate, 500);
+    });
+
+    // 5. adıma geçildiğinde toplamları güncelle
+    nextBtn.addEventListener('click', function() {
+        setTimeout(updateTotals, 300);
+    });
+
+    // 4. adımda parça ekleme/çıkarma/adet değişikliği olduğunda toplamları güncelle
+    function triggerPartsTotalUpdate() {
+        if (currentStep === 5) {
+            updateTotals();
+        }
+    }
+
+    // Sarf Malzeme Ekleme JS
+    const addConsumableBtn = document.getElementById('addConsumableBtn');
+    const consumableModal = new bootstrap.Modal(document.getElementById('consumableModal'));
+    const saveConsumableBtn = document.getElementById('saveConsumableBtn');
+
+    addConsumableBtn.addEventListener('click', function() {
+        document.getElementById('consumableCode').value = '';
+        document.getElementById('consumableName').value = '';
+        document.getElementById('consumablePrice').value = '';
+        document.getElementById('consumableQuantity').value = 1;
+        consumableModal.show();
+    });
+
+    saveConsumableBtn.addEventListener('click', function() {
+        const code = document.getElementById('consumableCode').value.trim();
+        const name = document.getElementById('consumableName').value.trim();
+        
+        // Fiyatı al ve formatla
+        const priceInput = document.getElementById('consumablePrice').value.trim();
+        let price = parseFloat(priceInput.replace(',', '.'));
+        
+        // Miktarı al
+        const quantity = parseInt(document.getElementById('consumableQuantity').value) || 1;
+        
+        // Doğrulamalar
+        if (!code || !name) {
+            alert('Lütfen parça kodu ve malzeme adı giriniz!');
+            return;
+        }
+        
+        if (isNaN(price) || price <= 0) {
+            alert('Lütfen geçerli bir fiyat giriniz! (Örnek: 12,50 veya 12.50)');
+            return;
+        }
+        
+        // Parça kodu kontrolü
+        const partExists = selectedParts.some(part => part.part_code === code);
+        if (partExists) {
+            alert('Bu parça kodu zaten eklenmiş!');
+            return;
+        }
+        
+        // Debug sarf malzeme fiyat bilgisi
+        console.log('Sarf malzeme eklenirken:', {
+            part_code: code,
+            name: name,
+            price_input: priceInput,
+            parsed_price: price,
+            quantity: quantity
+        });
+        
+        // EUR kurunu al
+        const eurRate = parseFloat('{{ exchange_rates.EUR.sell }}') || 34.0;
+        
+        // Sarf malzeme için fiyat TL olarak girildiği için doğrudan kullan
+        const newPart = {
+            part_code: code,
+            name: name,
+            price_try: price, // TL fiyatı (girilen değer)
+            price_eur: price / eurRate, // EUR fiyatı (backend için)
+            quantity: quantity,
+            is_consumable: true
+        };
+        
+        console.log('Eklenen sarf malzeme:', newPart);
+        
+        selectedParts.push(newPart);
+        
+        // Parça eklendikten sonra tabloyu güncelle
+        renderSelectedPartsTable();
+        
+        // Toplamları güncelle
+        updateTotals();
+        
+        // Formu temizle
+        document.getElementById('consumableCode').value = '';
+        document.getElementById('consumableName').value = '';
+        document.getElementById('consumablePrice').value = '';
+        document.getElementById('consumableQuantity').value = '1';
+        
+        // Modalı kapat
+        consumableModal.hide();
+    });
+});
+</script>
+
+<!-- Özel CSS -->
+<style>
+.step-indicator {
+    position: relative;
+    padding: 5px 10px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.step-indicator.active {
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.step-indicator.completed {
+    color: #198754;
+}
+
+.step-indicator.completed::after {
+    content: '✓';
+    margin-left: 5px;
+}
+
+.form-check-input.is-invalid {
+    border-color: #dc3545;
+}
+
+.form-check-input.is-invalid ~ .form-check-label {
+    color: #dc3545;
+}
+
+.form-step {
+    transition: all 0.3s ease;
+}
+
+.progress {
+    height: 3px !important;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+.quantity-container {
+    display: none;
+}
+
+.show {
+    display: block;
+}
+</style>
+{% endblock %} 

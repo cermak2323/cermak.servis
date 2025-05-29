@@ -1,0 +1,66 @@
+                        <div class="col-12 mt-2 mb-2">
+                            <button type="button" class="btn btn-outline-primary" id="addConsumableBtn">Sarf Malzeme Ekle</button>
+                        </div>
+
+<!-- Sarf Malzeme Modalı -->
+<div class="modal fade" id="consumableModal" tabindex="-1" aria-labelledby="consumableModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="consumableModalLabel">Sarf Malzeme Ekle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="consumableName" class="form-label">Malzeme Adı</label>
+          <input type="text" class="form-control" id="consumableName" placeholder="Örn: Temizlik Bezi">
+        </div>
+        <div class="mb-3">
+          <label for="consumablePrice" class="form-label">Birim Fiyatı (TL)</label>
+          <input type="number" class="form-control" id="consumablePrice" min="0" step="0.01" placeholder="Örn: 100">
+        </div>
+        <div class="mb-3">
+          <label for="consumableQuantity" class="form-label">Adet</label>
+          <input type="number" class="form-control" id="consumableQuantity" min="1" step="1" value="1">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" id="saveConsumableBtn">Ekle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sarf Malzeme Ekleme JS -->
+<script>
+const addConsumableBtn = document.getElementById('addConsumableBtn');
+const consumableModal = new bootstrap.Modal(document.getElementById('consumableModal'));
+const saveConsumableBtn = document.getElementById('saveConsumableBtn');
+
+addConsumableBtn.addEventListener('click', function() {
+    document.getElementById('consumableName').value = '';
+    document.getElementById('consumablePrice').value = '';
+    document.getElementById('consumableQuantity').value = 1;
+    consumableModal.show();
+});
+
+saveConsumableBtn.addEventListener('click', function() {
+    const name = document.getElementById('consumableName').value.trim();
+    const price = parseFloat(document.getElementById('consumablePrice').value);
+    const quantity = parseInt(document.getElementById('consumableQuantity').value) || 1;
+    if (!name || isNaN(price) || price < 0) {
+        alert('Lütfen geçerli bir malzeme adı ve fiyatı girin!');
+        return;
+    }
+    selectedParts.push({
+        part_code: '',
+        name: name,
+        price_try: price,
+        quantity: quantity
+    });
+    renderSelectedPartsTable();
+    consumableModal.hide();
+    triggerPartsTotalUpdate();
+});
+</script> 

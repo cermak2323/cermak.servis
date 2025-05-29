@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}
+Kontrol Paneli - Cermak Servis Hizmetleri
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+
+{% if today_reminders %}
+<div class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__pulse animate__infinite" role="alert">
+    <div class="d-flex align-items-center">
+        <div class="flex-shrink-0">
+            <i class="bi bi-exclamation-triangle-fill fs-1 me-3"></i>
+        </div>
+        <div class="flex-grow-1">
+            <h4 class="alert-heading fw-bold">Bugün için {{ today_reminders|length }} hatırlatıcı bulunuyor!</h4>
+            <p>Bakım hatırlatıcıları için lütfen <a href="{{ url_for('maintenance.reminder_system') }}" class="alert-link">hatırlatma sistemine</a> gidiniz.</p>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+</div>
+{% endif %}
+
+            <div class="welcome-container text-center mb-5">
+                <div class="hero-background"></div>
+                <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="welcome-logo animate__animated animate__fadeIn">
+                <div class="welcome-text animate__animated animate__fadeInUp">
+                    <h1 class="display-4 text-gradient fw-bold">Hoş Geldiniz, {{ current_user.username }}</h1>
+                    <p class="lead welcome-description">Cermak Servis Hizmetleri Yönetim Sistemi</p>
+                </div>
+            </div>
+
+            <!-- Hatırlatma Bölümü -->
+            <div class="alert alert-warning alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-bell"></i> Hatırlatmalar</h4>
+                <hr>
+                {% if today_reminders %}
+                <p>Bugün için <strong>{{ today_reminders|length }}</strong> bakım hatırlatması bulunmaktadır:</p>
+                <ul class="mb-0">
+                    {% for reminder in today_reminders %}
+                    <li>
+                        <strong>{{ reminder.machine.model }}</strong> - {{ reminder.reminder_type }} 
+                        <small class="text-muted">({{ reminder.machine.owner_name }})</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>Bugün için bakım hatırlatması bulunmamaktadır.</p>
+                <ul class="mb-0">
+                    <li>Periyodik bakım zamanı gelmiş makineler için bildirim</li>
+                    <li>Onay bekleyen teklifler</li>
+                </ul>
+                {% endif %}
+                <a href="{{ url_for('maintenance.reminder_system') }}" class="btn btn-sm btn-primary mt-2">
+                    <i class="bi bi-eye"></i> Tüm Hatırlatmaları Görüntüle
+                </a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+            </div>
+
+            <div class="module-grid glass-effect" id="cardContainer">
+                {% if current_user.is_authenticated and current_user.permissions %}
+                <a href="{{ url_for('machines.index') }}" class="module-card">
+                    <div class="icon-wrapper"><i class="bi bi-truck"></i></div>
+                    <h3>Makine Kayıt ve Sorgulama Sistemi</h3>
+                    <p>Makine işlemleri yönetim sistemi</p>
+                </a>
+                {% endif %}
+
+                {% if current_user.permissions.can_view_periodic_maintenance %}
+                <a href="{{ url_for('offers.offers_dashboard') }}" class="module-card">
+                    <div class="icon-wrapper"><i class="bi bi-file-earmark-text"></i></div>
+                    <h3>Teklif Oluşturma ve Onaylama Sistemi</h3>
+                    <p>Teklif yönetim işlemleri</p>
+                </a>
+                {% endif %}
+
+                {% if current_user.permissions.can_view_parts %}
+                <a href="{{ url_for('parts.parts_view') }}" class="module-card">
+                    <div class="icon-wrapper"><i class="bi bi-gear"></i></div>
+                    <h3>Yedek Parça Fiyat ve Bilgi Sistemi</h3>
+                    <p>Yedek parça arama ve fiyat sorgulama</p>
+                </a>
+                {% endif %}
+
+                {% if current_user.permissions.can_view_faults %}
+                <a href="{{ url_for('faults.fault_management') }}" class="module-card">
+                    <div class="icon-wrapper"><i class="bi bi-exclamation-triangle"></i></div>
+                    <h3>Arıza Tespit ve Çözüm</h3>
+                    <p>Arıza tespiti ve çözüm önerileri</p>
+                </a>
+                {% endif %}
+
+                {% if current_user.permissions.can_view_catalogs %}
+                <a href="{{ url_for('catalogs.catalogs_view') }}" class="module-card">
+                    <div class="icon-wrapper"><i class="bi bi-book"></i></div>
+                    <h3>Kataloglar</h3>
+                    <p>Makine katalogları ve dökümanlar</p>
+                </a>
+                {% endif %}
+
+                {% if current_user.permissions.can_view_contact %}
+                <a href="{{ url_for('contact.contact_view') }}" class="module-card">
+                    <div class="icon-wrapper"><i class="bi bi-envelope"></i></div>
+                    <h3>İletişim</h3>
+                    <p>İletişim bilgileri ve destek</p>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .module-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 2rem;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .module-grid.loaded {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .module-card {
+        background: linear-gradient(145deg, #ffffff, #f3f4f6);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+        transition: transform 0.4s ease-out, box-shadow 0.4s ease-out;
+        text-decoration: none;
+        color: #343a40;
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+
+    .module-card.loaded {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .module-card:hover {
+        transform: translateY(-15px);
+        box-shadow: 0 30px 70px rgba(0,0,0,0.2);
+        background: #ffffff;
+    }
+
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: #e74c3c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        margin: 0 auto 1.5rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cardContainer = document.getElementById('cardContainer');
+        const cards = document.querySelectorAll('.module-card');
+
+        // Initial page load animation
+        setTimeout(() => {
+            cardContainer.classList.add('loaded');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('loaded');
+                }, index * 100); // Each card appears with 100ms delay
+            });
+        }, 100); // Minimal delay for smooth rendering
+    });
+</script>
+{% endblock %}

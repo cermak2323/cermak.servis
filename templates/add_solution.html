@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}
+Çözüm Ekle
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4 text-danger">Çözüm Ekle</h2>
+        <div class="card border-danger shadow-sm">
+            <div class="card-body">
+                <!-- Arıza bilgileri -->
+                <p class="text-muted mb-4">
+                    Arıza: <strong>{{ report.machine_model }}</strong> | {{ report.fault_type }} | {{ report.description | truncate(100) }}
+                    {% if report.description|length > 100 %}
+                        <a href="#" data-bs-toggle="tooltip" title="{{ report.description }}">...</a>
+                    {% endif %}
+                </p>
+
+                <!-- Flash mesajları -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Çözüm formu -->
+                <form method="POST" action="{{ url_for('faults.add_solution', report_id=report.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-medium">Arıza Başlığı</label>
+                        <input type="text" class="form-control border-danger" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-medium">Çözüm Açıklaması</label>
+                        <textarea class="form-control border-danger" id="description" name="description" rows="5" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="part_codes" class="form-label fw-medium">Parça Kodları (Virgülle ayırın, örneğin: PC001,PC002)</label>
+                        <input type="text" class="form-control border-danger" id="part_codes" name="part_codes" placeholder="PC001,PC002">
+                    </div>
+                    <div class="mb-3">
+                        <label for="media_file" class="form-label fw-medium">Görsel veya Video (Opsiyonel, .png, .jpg, .jpeg, .mp4, .mov)</label>
+                        <input type="file" class="form-control border-danger" id="media_file" name="media_file" accept=".png,.jpg,.jpeg,.mp4,.mov">
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label fw-medium">Arıza Durumu</label>
+                        <select class="form-control border-danger" id="status" name="status" required>
+                            <option value="pending" {% if report.status == 'pending' %}selected{% endif %}>Beklemede</option>
+                            <option value="in_progress" {% if report.status == 'in_progress' %}selected{% endif %}>Devam Ediyor</option>
+                            <option value="resolved" {% if report.status == 'resolved' %}selected{% endif %}>Çözüldü</option>
+                            <option value="closed" {% if report.status == 'closed' %}selected{% endif %}>Kapalı</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-danger">Kaydet</button>
+                        <a href="{{ url_for('faults.fault_list') }}" class="btn btn-outline-danger ms-2">Geri</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap tooltip için JavaScript -->
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+{% endblock %}

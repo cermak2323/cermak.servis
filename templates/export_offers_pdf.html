@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Teklif Listesi</title>
+    <style>
+        @page { 
+            size: A4; 
+            margin: 15mm;
+        }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            color: #000000; 
+            font-size: 10px; 
+        }
+        h1 { 
+            color: #C8102E; 
+            font-size: 20px; 
+            font-weight: bold; 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+        }
+        th, td { 
+            border: 1px solid #C8102E; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #C8102E; 
+            color: #FFFFFF; 
+            font-weight: bold; 
+        }
+        tr:nth-child(even) td { 
+            background-color: #F9F9F9; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Teklif Listesi</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Teklif Numarası</th>
+                <th>Makine Modeli</th>
+                <th>Makine Seri Numarası</th>
+                <th>Filtre Türü</th>
+                <th>Müşteri Adı Soyadı</th>
+                <th>Şirket Adı</th>
+                <th>Telefon</th>
+                <th>Teklif Veren</th>
+                <th>Toplam Tutar (TL)</th>
+                <th>Durum</th>
+                <th>Fatura Numarası</th>
+                <th>Oluşturulma Tarihi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in offers %}
+            <tr>
+                <td>{{ offer.offer_number }}</td>
+                <td>{{ offer.machine_model }}</td>
+                <td>{{ offer.serial_number }}</td>
+                <td>{{ offer.filter_type }}</td>
+                <td>{{ offer.customer_first_name }} {{ offer.customer_last_name }}</td>
+                <td>{{ offer.company_name }}</td>
+                <td>{{ offer.phone }}</td>
+                <td>{{ offer.offeror_name }}</td>
+                <td>{{ offer.total_amount | format_currency }}</td>
+                <td>{{ offer.status }}</td>
+                <td>{{ offer.invoice_number if offer.invoice_number else '-' }}</td>
+                <td>{{ offer.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

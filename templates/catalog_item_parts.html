@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ item.model_name }} Parçaları - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="text-center mb-4 text-danger">{{ item.model_name }} Parçaları</h2>
+        <div class="row">
+            {% for part in parts %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-danger">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">{{ part.name }}</h5>
+                            <p class="card-text"><strong>Parça Kodu:</strong> {{ part.part_code }}</p>
+                            <p class="card-text"><strong>Satış Fiyatı (TL):</strong> {{ part.selling_price_try | round(2) }} ₺</p>
+                            {% if part.image_url %}
+                                <img src="{{ part.image_url }}" alt="{{ part.name }}" class="img-fluid mb-3 rounded" style="max-height: 150px;">
+                            {% endif %}
+                            <a href="{{ url_for('parts.part_detail', part_id=part.id) }}" class="btn btn-danger">Detay</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <a href="{{ url_for('catalogs.catalog_detail', catalog_slug=item.catalog.slug) }}" class="btn btn-outline-danger mt-3">Geri Dön</a>
+    </div>
+</div>
+{% endblock %}

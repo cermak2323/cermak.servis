@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            margin: 1.5cm 1cm;
+            size: A4;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            color: #333;
+            font-size: 10pt;
+        }
+        .header {
+            padding: 10px 0;
+            border-bottom: 2px solid #a52834;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            width: 150px;
+        }
+        .document-info {
+            text-align: right;
+            border: 1px solid #a52834;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .offer-number {
+            color: #a52834;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .content {
+            padding: 0 10px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 9pt;
+        }
+        .info-value {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #a52834;
+            margin-top: 3px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 9pt;
+            border: 2px solid #a52834;
+        }
+        th {
+            background-color: #a52834;
+            color: white;
+            padding: 6px;
+            text-align: left;
+            font-weight: bold;
+        }
+        td {
+            padding: 5px 6px;
+            border: 1px solid #ddd;
+        }
+        .alternate-row {
+            background-color: #f9f9f9;
+        }
+        .total-section {
+            width: 350px;
+            margin-left: auto;
+            border: 2px solid #a52834;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 10pt;
+            border-bottom: 1px solid #ddd;
+        }
+        .total-row.grand-total {
+            font-weight: bold;
+            border-top: 2px solid #a52834;
+            border-bottom: none;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-size: 12pt;
+            color: #a52834;
+            background-color: #fff;
+        }
+        .validity-info {
+            text-align: center;
+            font-size: 10pt;
+            color: #a52834;
+            font-weight: bold;
+            margin: 15px 0;
+            border: 1px solid #a52834;
+            padding: 8px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .page-break {
+            page-break-before: always;
+            margin-top: 30px;
+        }
+        .notes-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .notes-section h3 {
+            color: #a52834;
+            margin-bottom: 15px;
+            font-size: 12pt;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .notes-section ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .notes-section li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .signature-box {
+            width: 45%;
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        .signature-title {
+            font-weight: bold;
+            margin-bottom: 30px;
+            font-size: 10pt;
+        }
+        .footer {
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="data:image/png;base64,{{ logo_base64 }}" alt="CERMAK Logo" class="logo">
+        <div class="document-info">
+            <div class="offer-number">{{ offer.offer_number }}</div>
+            <div>Tarih: {{ offer.created_at.strftime('%d.%m.%Y') }}</div>
+            <div>Geçerlilik: {{ validity_date }}</div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">MÜŞTERİ</div>
+                <div class="info-value">{{ offer.customer_first_name }} {{ offer.customer_last_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">ŞİRKET</div>
+                <div class="info-value">{{ offer.company_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">TELEFON</div>
+                <div class="info-value">{{ offer.phone }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">MAKİNE MODELİ</div>
+                <div class="info-value">{{ offer.machine_model or 'BELİRTİLMEDİ' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">SERİ NO</div>
+                <div class="info-value">{{ offer.serial_number }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">FİLTRE TÜRÜ</div>
+                <div class="info-value">{% if offer.filter_type == 'original' %}ORİJİNAL{% else %}MUADİL{% endif %}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">BAKIM ARALIĞI</div>
+                <div class="info-value">{{ offer.maintenance_interval or 'BELİRTİLMEDİ' }}</div>
+            </div>
+        </div>
+
+        <h3 style="color:#a52834; margin-top:30px;">Yedek Parçalar</h3>
+        <table>
+            <tr class="header-row">
+                <th>SIRA NO</th>
+                <th>PARÇA NO</th>
+                <th>AÇIKLAMA</th>
+                <th>ADET</th>
+                <th>BİRİM FİYAT (TL)</th>
+                <th>TOPLAM (TL)</th>
+            </tr>
+            {{ parts_table_content|safe }}
+        </table>
+
+        <div class="total-section">
+            <div class="total-row">
+                <div class="total-label">ARA TOPLAM</div>
+                <div>{{ "{:,.2f}".format(subtotal_try) }} TL</div>
+            </div>
+            {% if discount_amount > 0 %}
+            <div class="total-row">
+                <div class="total-label">{{ discount_label }}</div>
+                <div>-{{ "{:,.2f}".format(discount_amount) }} TL</div>
+            </div>
+            {% endif %}
+            <div class="total-row">
+                <div class="total-label">KDV (%20)</div>
+                <div>{{ "{:,.2f}".format(kdv) }} TL</div>
+            </div>
+            <div class="total-row grand-total">
+                <div class="total-label">GENEL TOPLAM</div>
+                <div>{{ "{:,.2f}".format(total_amount_try) }} TL</div>
+            </div>
+        </div>
+
+        <div class="validity-info">
+            Bu teklif {{ validity_date }} tarihine kadar geçerlidir.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="content">
+        <div class="notes-section">
+            <h3>ÖNEMLİ BİLGİLENDİRME</h3>
+            <ol>
+                <li>FİYAT OPSİYONUMUZ 7 İŞ GÜNÜDÜR.</li>
+                <li>ÖDEME, PEŞİNDİR.</li>
+                <li>TEKNİK HATA HARİÇ TEYİT EDİLMİŞ PARÇA İADESİ KABUL EDİLMEZ.</li>
+                <li>GARANTİ KULLANICI HATALARI VE SARF KULLANIM HARİÇ 1 YILDIR.</li>
+                <li>YURT DIŞI SİPARİŞLERDE TESLİM TARİHİ VERİLMİŞ OLMASINA RAĞMEN GÜMRÜK İŞLEMLERİNDEKİ GECİKMELERDEN CERMAK SERVİS HİÇ BİR SURETLE SORUMLU TUTULAMAZ.</li>
+            </ol>
+        </div>
+
+        <div class="signatures">
+            <div class="signature-box">
+                <div class="signature-title">Teklifi Veren</div>
+                <p>{{ offer.offeror_name }}</p>
+                <br>
+                <p>İmza</p>
+            </div>
+            <div class="signature-box">
+                <div class="signature-title">Teklifi Onaylayan</div>
+                <p>{{ offer.company_name }}</p>
+                <br>
+                <p>Kaşe/İmza</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>CERMAK SERVİS HİZMETLERİ VE YEDEK PARÇA LTD.ŞTİ.</strong><br>
+            İOSB ESENLER SAN.SİT 3. BLOK NO: 5, 34490 BAŞAKŞEHİR/İSTANBUL<br>
+            Tel: 0212 671 57 44 | Faks: 0212 671 57 48 | Web: www.cerenmakina.com | E-posta: info@cerenmakina.com
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Makine Kaydı{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h3 class="mb-0">Yeni Makine Kaydı</h3>
+                </div>
+                <div class="card-body bg-light">
+                    <!-- Progress bar -->
+                    <div class="progress mb-4" style="height: 25px;">
+                        <div class="progress-bar bg-danger" role="progressbar" 
+                             style="width: {{ current_step * 25 }}%"
+                             aria-valuenow="{{ current_step * 25 }}" aria-valuemin="0" aria-valuemax="100">
+                            <strong>Adım {{ current_step }}/4</strong>
+                        </div>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% if current_step == 1 %}
+                        <!-- Step 1: Makine Bilgileri -->
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0">Makine Bilgileri</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="serial_number" class="form-label">Seri Numarası*</label>
+                                    <input type="text" class="form-control form-control-lg" id="serial_number" 
+                                           name="serial_number" required value="{{ machine_data.get('serial_number', '') }}">
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="machine_type_id" class="form-label">Makine Tipi*</label>
+                                    <select class="form-control form-control-lg" id="machine_type_id" name="machine_type_id" required>
+                                        <option value="">Seçiniz</option>
+                                        {% for type in machine_types %}
+                                        <option value="{{ type.id }}" {% if machine_data.get('machine_type_id')|string == type.id|string %}selected{% endif %}>
+                                            {{ type.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="machine_model_id" class="form-label">Model*</label>
+                                    <select class="form-control form-control-lg" id="machine_model_id" name="machine_model_id" required>
+                                        <option value="">Önce makine tipini seçin</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% elif current_step == 2 %}
+                        <!-- Step 2: Müşteri Bilgileri -->
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0">Müşteri Bilgileri</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="owner_name" class="form-label">Müşteri Adı*</label>
+                                    <input type="text" class="form-control form-control-lg" id="owner_name" 
+                                           name="owner_name" required value="{{ machine_data.get('owner_name', '') }}">
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="phone_number" class="form-label">Telefon Numarası*</label>
+                                    <input type="tel" class="form-control form-control-lg" id="phone_number" 
+                                           name="phone_number" required value="{{ machine_data.get('phone_number', '') }}">
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="city_id" class="form-label">Şehir*</label>
+                                    <select class="form-control form-control-lg" id="city_id" name="city_id" required>
+                                        <option value="">Seçiniz</option>
+                                        {% for city in cities %}
+                                        <option value="{{ city.id }}" {% if machine_data.get('city_id')|string == city.id|string %}selected{% endif %}>
+                                            {{ city.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="address" class="form-label">Adres*</label>
+                                    <textarea class="form-control form-control-lg" id="address" name="address" 
+                                              rows="3" required>{{ machine_data.get('address', '') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% elif current_step == 3 %}
+                        <!-- Step 3: Ekipman Bilgileri -->
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0">Ekipman Bilgileri</h4>
+                            </div>
+                            <div class="card-body">
+                                <!-- Kova Bilgileri -->
+                                <div class="mb-4">
+                                    <h5>Kova Bilgileri <small class="text-muted">(Opsiyonel)</small></h5>
+                                    <div id="bucket-container">
+                                        <div class="bucket-entry row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Kova Tipi</label>
+                                                <select class="form-control bucket-type" name="bucket_types[]">
+                                                    <option value="">Seçiniz</option>
+                                                    {% for type in bucket_types %}
+                                                    <option value="{{ type }}">{{ type }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Kova Genişliği (cm)</label>
+                                                <select class="form-control bucket-width" name="bucket_widths[]">
+                                                    <option value="">Seçiniz</option>
+                                                    {% for width in bucket_widths %}
+                                                    <option value="{{ width }}">{{ width }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm mt-2" id="add-bucket">
+                                        <i class="fas fa-plus"></i> Kova Ekle
+                                    </button>
+                                </div>
+
+                                <!-- Ataşmanlar -->
+                                <div class="mb-4">
+                                    <h5 class="text-danger">Ataşmanlar</h5>
+                                    <div id="attachment-container" class="bg-white p-3 border rounded">
+                                        {% for type in attachment_types %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="attachment_types[]" 
+                                                   value="{{ type }}" id="attachment_{{ loop.index }}">
+                                            <label class="form-check-label" for="attachment_{{ loop.index }}">
+                                                {{ type }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <!-- Quickhitch -->
+                                <div class="mb-4">
+                                    <h5 class="text-danger">Quickhitch</h5>
+                                    <div class="form-check bg-white p-3 border rounded">
+                                        <input class="form-check-input" type="checkbox" name="quickhitch" id="quickhitch">
+                                        <label class="form-check-label" for="quickhitch">
+                                            Quickhitch Ekle
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Bakım Kitleri -->
+                                <div class="mb-4">
+                                    <h5 class="text-danger">Bakım Kitleri</h5>
+                                    <div id="maintenance-kit-container" class="bg-white p-3 border rounded">
+                                        {% for type in maintenance_kit_types %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="maintenance_types[]" 
+                                                   value="{{ type }}" id="maintenance_{{ loop.index }}">
+                                            <label class="form-check-label" for="maintenance_{{ loop.index }}">
+                                                {{ type }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% elif current_step == 4 %}
+                        <!-- Step 4: Dosya Yüklemeleri -->
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0">Dosya Yüklemeleri</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-4">
+                                    <label for="registration_document" class="form-label">Kayıt Belgesi (PDF)*</label>
+                                    <input type="file" class="form-control form-control-lg" id="registration_document" 
+                                           name="registration_document" accept=".pdf" required>
+                                    <small class="form-text text-muted">Sadece PDF dosyaları kabul edilir.</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Makine Fotoğrafları (En az 1, en fazla 6)*</label>
+                                    {% for i in range(6) %}
+                                    <div class="custom-file mb-3">
+                                        <input type="file" class="form-control form-control-lg" id="photo_{{ i }}" 
+                                               name="photo_{{ i }}" accept=".png,.jpg,.jpeg">
+                                    </div>
+                                    {% endfor %}
+                                    <small class="form-text text-muted">PNG, JPG veya JPEG formatında.</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-4 mb-4 d-flex justify-content-between">
+                            <button type="submit" name="cancel" class="btn btn-secondary btn-lg">İptal</button>
+                            <div>
+                                {% if current_step > 1 %}
+                                <a href="{{ url_for('machines.add_machine', step=current_step-1) }}" 
+                                   class="btn btn-outline-danger btn-lg me-2">Geri</a>
+                                {% endif %}
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    {% if current_step < 4 %}İleri{% else %}Kaydet{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Makine tipi değiştiğinde modelleri güncelle
+    const machineTypeSelect = document.getElementById('machine_type_id');
+    const modelSelect = document.getElementById('machine_model_id');
+    
+    if (machineTypeSelect && modelSelect) {
+        machineTypeSelect.addEventListener('change', function() {
+            const typeId = this.value;
+            modelSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            
+            if (typeId) {
+                fetch(`/machines/api/models/${typeId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        modelSelect.innerHTML = '<option value="">Model Seçin</option>';
+                        data.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.textContent = model.name;
+                            modelSelect.appendChild(option);
+                        });
+                        
+                        // Eğer önceden seçilmiş bir model varsa, onu seç
+                        const savedModelId = '{{ machine_data.get("machine_model_id", "") }}';
+                        if (savedModelId) {
+                            modelSelect.value = savedModelId;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Hata:', error);
+                        modelSelect.innerHTML = '<option value="">Modeller yüklenirken hata oluştu</option>';
+                    });
+            } else {
+                modelSelect.innerHTML = '<option value="">Önce makine tipini seçin</option>';
+            }
+        });
+        
+        // Sayfa yüklendiğinde makine tipi seçili ise modelleri yükle
+        if (machineTypeSelect.value) {
+            machineTypeSelect.dispatchEvent(new Event('change'));
+        }
+    }
+    
+    // Kova ekleme/silme işlemleri
+    const bucketContainer = document.getElementById('bucket-container');
+    const addBucketBtn = document.getElementById('add-bucket');
+    
+    if (bucketContainer && addBucketBtn) {
+        addBucketBtn.addEventListener('click', function() {
+            const newEntry = bucketContainer.children[0].cloneNode(true);
+            newEntry.querySelectorAll('select').forEach(select => select.value = '');
+            bucketContainer.appendChild(newEntry);
+            
+            // Yeni silme butonuna event listener ekle
+            const removeBtn = newEntry.querySelector('.remove-bucket');
+            removeBtn.addEventListener('click', function() {
+                if (bucketContainer.children.length > 1) {
+                    this.closest('.bucket-entry').remove();
+                }
+            });
+        });
+        
+        // Mevcut silme butonlarına event listener ekle
+        document.querySelectorAll('.remove-bucket').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (bucketContainer.children.length > 1) {
+                    this.closest('.bucket-entry').remove();
+                }
+            });
+        });
+    }
+    
+    // Dosya yükleme etiketlerini güncelle
+    document.querySelectorAll('.custom-file-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const fileName = this.files[0]?.name || 'Dosya seçilmedi';
+            this.nextElementSibling.textContent = fileName;
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

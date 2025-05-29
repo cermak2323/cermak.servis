@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}
+Bakım Kaydı Düzenle - {{ machine.serial_number }}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-5 hero-section">
+            <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto; animation: zoomIn 1s ease;">
+            <h1 class="display-4 text-danger fw-bold" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); animation: slideInFromLeft 1s ease;">Bakım Kaydı Düzenle</h1>
+            <p class="lead fw-light text-muted" style="animation: fadeInUp 1.5s ease;">Makine: {{ machine.serial_number }} ({{ machine.model }})</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="action_type" class="form-label">İşlem Türü</label>
+                <select class="form-select" id="action_type" name="action_type" required>
+                    <option value="Bakım" {% if record.action_type == 'Bakım' %}selected{% endif %}>Bakım</option>
+                    <option value="Parça Değişimi" {% if record.action_type == 'Parça Değişimi' %}selected{% endif %}>Parça Değişimi</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ record.description or '' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="invoice_file" class="form-label">Fatura (PDF) - Mevcut: {% if record.invoice_file %}<a href="{{ url_for('static', filename=record.invoice_file) }}" target="_blank">Görüntüle</a>{% else %}Yok{% endif %}</label>
+                <input type="file" class="form-control" id="invoice_file" name="invoice_file" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="part_image" class="form-label">Parça Resmi (JPEG/PNG) - Mevcut: {% if record.part_image %}<a href="{{ url_for('static', filename=record.part_image) }}" target="_blank">Görüntüle</a>{% else %}Yok{% endif %}</label>
+                <input type="file" class="form-control" id="part_image" name="part_image" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-danger">Kaydı Güncelle</button>
+            <a href="{{ url_for('machine_maintenance', machine_id=machine.id) }}" class="btn btn-outline-danger">İptal</a>
+        </form>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        padding: 2rem 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    @keyframes zoomIn {
+        0% { opacity: 0; transform: scale(0.5); }
+        50% { transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideInFromLeft {
+        0% { opacity: 0; transform: translateX(-60px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInUp {
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

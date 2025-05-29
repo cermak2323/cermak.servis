@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ catalog.name }}</title>
+</head>
+<body>
+    <h1>{{ catalog.name }}</h1>
+    <ul>
+        {% for item in items %}
+            <li>
+                <h2>{{ item.name }}</h2>
+                <ul>
+                    {% if item.motor_pdf_url %}
+                        <li><a href="{{ url_for('catalogs.get_pdf', filename=item.motor_pdf_url) }}" target="_blank">Motor Parça Kataloğu</a></li>
+                    {% endif %}
+                    {% if item.yedek_parca_pdf_url %}
+                        <li><a href="{{ url_for('static', filename=item.yedek_parca_pdf_url) }}" target="_blank">Yedek Parça Kataloğu</a></li>
+                    {% endif %}
+                    {% if item.operator_pdf_url %}
+                        <li><a href="{{ url_for('static', filename=item.operator_pdf_url) }}" target="_blank">Operatör Manuel</a></li>
+                    {% endif %}
+                    {% if item.service_pdf_url %}
+                        <li><a href="{{ url_for('static', filename=item.service_pdf_url) }}" target="_blank">Service Manuel</a></li>
+                    {% endif %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

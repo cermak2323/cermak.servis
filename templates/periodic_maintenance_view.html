@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --cermak-red: #C8102E;
+        --cermak-dark-red: #A00D24;
+        --cermak-light-red: #ff1a1a;
+    }
+
+    .btn-cermak {
+        background-color: var(--cermak-red);
+        border-color: var(--cermak-red);
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn-cermak:hover {
+        background-color: var(--cermak-dark-red);
+        border-color: var(--cermak-dark-red);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-cermak:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .card-header-cermak {
+        background-color: var(--cermak-red) !important;
+        color: white !important;
+    }
+
+    .border-cermak {
+        border-color: var(--cermak-red) !important;
+    }
+
+    .maintenance-results {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .maintenance-results.show {
+        display: block;
+        opacity: 1;
+    }
+
+    .top-actions {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: linear-gradient(to right, #fff, #f8f9fa);
+        padding: 20px 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border-radius: 0 0 15px 15px;
+        margin-bottom: 30px;
+    }
+
+    .action-button {
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: white;
+        border: 2px solid var(--cermak-red);
+        color: var(--cermak-red);
+        text-decoration: none !important;
+    }
+
+    .action-button:hover {
+        background: var(--cermak-red);
+        color: white;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(200,16,46,0.2);
+    }
+
+    .action-button:focus {
+        text-decoration: none !important;
+        color: inherit;
+    }
+
+    .action-button:visited {
+        text-decoration: none !important;
+        color: inherit;
+    }
+
+    .action-button i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .action-button .button-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .search-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .search-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .form-select, .btn {
+        border-radius: 8px;
+    }
+
+    .maintenance-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .maintenance-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        padding: 12px 15px;
+        transition: background-color 0.2s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .alert-info {
+        border-radius: 10px;
+        border-left: 4px solid var(--cermak-red);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+    }
+
+    /* Yağ seçimi stilleri */
+    .oil-checkbox {
+        cursor: pointer;
+    }
+
+    .oil-quantity {
+        transition: all 0.3s ease;
+    }
+
+    .oil-quantity.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .oil-quantity.hide {
+        opacity: 0;
+        transform: translateX(-10px);
+        pointer-events: none;
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- Üst Kısım - Her Zaman Görünür -->
+    <div class="top-actions mb-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="action-button" onclick="window.location.href='{{ url_for('periodic_maintenance.create_offer') }}'" style="cursor: pointer;">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="button-text">Bakım Teklifi Oluştur</span>
+                    <small class="text-muted mt-2">Yeni bir periyodik bakım teklifi oluşturun</small>
+                </div>
+            </div>
+            {% if current_user.role == 'admin' %}
+            <div class="col-md-6">
+                <div class="action-button" data-bs-toggle="modal" data-bs-target="#excelUploadModal" style="cursor: pointer;">
+                    <i class="fas fa-file-excel"></i>
+                    <span class="button-text">Excel Yükle</span>
+                    <small class="text-muted mt-2">Toplu veri güncellemesi yapın</small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-cermak search-card">
+        <div class="card-header card-header-cermak">
+            <h4 class="mb-0"><i class="fas fa-search me-2"></i>Periyodik Bakım Bilgi Sistemi</h4>
+        </div>
+        <div class="card-body">
+            <!-- Arama Formu -->
+            <form method="GET" action="{{ url_for('periodic_maintenance.periodic_maintenance') }}" class="mb-4">
+                <div class="row g-4">
+                    <div class="col-md-5">
+                        <label for="machine_model" class="form-label">
+                            <i class="fas fa-cog me-2"></i>Makine Modeli
+                        </label>
+                        <select class="form-select" id="machine_model" name="machine_model">
+                            <option value="">Tüm Modeller</option>
+                            {% for model in machine_models %}
+                            <option value="{{ model }}" {% if model == selected_model %}selected{% endif %}>{{ model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="maintenance_interval" class="form-label">
+                            <i class="fas fa-clock me-2"></i>Bakım Saati
+                        </label>
+                        <select class="form-select" id="maintenance_interval" name="maintenance_interval">
+                            <option value="">Tüm Bakım Saatleri</option>
+                            {% for interval in maintenance_intervals %}
+                            <option value="{{ interval }}" {% if interval == selected_interval %}selected{% endif %}>{{ interval }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-cermak w-100">
+                            <i class="fas fa-search me-2"></i>Ara
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Sonuçlar -->
+            <div class="maintenance-results {% if selected_model and selected_interval %}show{% endif %}">
+                <!-- Yağ Seçimi -->
+                <form method="POST" action="{{ url_for('periodic_maintenance.periodic_maintenance') }}" class="mb-4">
+                    <input type="hidden" name="machine_model" value="{{ selected_model }}">
+                    <input type="hidden" name="maintenance_interval" value="{{ selected_interval }}">
+                    
+                    <div class="card border-cermak mb-4">
+                        <div class="card-header card-header-cermak">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-oil-can me-2"></i>Yağ Seçimi
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for oil in oils %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input oil-checkbox" 
+                                                   name="oil_selected_{{ oil.id }}" 
+                                                   id="oil_{{ oil.id }}"
+                                                   data-oil-id="{{ oil.id }}"
+                                                   data-oil-name="{{ oil.name }}"
+                                                   data-oil-price-eur="{{ oil.price_eur }}"
+                                                   data-oil-price-tl="{{ oil.price_eur * exchange_rates.EUR.sell }}">
+                                            <label class="form-check-label" for="oil_{{ oil.id }}">
+                                                {{ oil.name }}
+                                            </label>
+                                        </div>
+                                        <div class="ms-3" id="quantity_{{ oil.id }}" style="display: none;">
+                                            <div class="input-group input-group-sm" style="width: 120px;">
+                                                <input type="number" class="form-control"
+                                                       name="oil_quantity_{{ oil.id }}"
+                                                       min="1" 
+                                                       value="1"
+                                                       placeholder="Litre">
+                                                <span class="input-group-text">Lt</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="row g-4">
+                    {% for maintenance in maintenances %}
+                    <div class="col-md-4 mb-4 fade-in" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+                        <div class="card h-100 border-cermak maintenance-card">
+                            <div class="card-header card-header-cermak">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-filter me-2"></i>{{ maintenance.filter_name }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <i class="fas fa-cog me-2"></i>
+                                        <strong>Makine Modeli:</strong> {{ maintenance.machine_model }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-clock me-2"></i>
+                                        <strong>Bakım Saati:</strong> {{ maintenance.maintenance_interval }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-barcode me-2"></i>
+                                        <strong>Orijinal Parça Kodu:</strong> {{ maintenance.filter_part_code }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-barcode me-2"></i>
+                                        <strong>Muadil Parça Kodu:</strong> {{ maintenance.alternate_part_code or 'Mevcut Değil' }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-euro-sign me-2"></i>
+                                        <strong>Orijinal Fiyat:</strong> {{ "%.2f"|format(maintenance.original_price_eur * exchange_rates['EUR']['sell']) }} TL
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-euro-sign me-2"></i>
+                                        <strong>Muadil Fiyat:</strong> {{ "%.2f"|format(maintenance.alternate_price_eur * exchange_rates['EUR']['sell']) if maintenance.alternate_price_eur else 'Mevcut Değil' }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Excel Yükleme Modal -->
+{% if current_user.role == 'admin' %}
+<div class="modal fade" id="excelUploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header card-header-cermak">
+                <h5 class="modal-title"><i class="fas fa-file-excel me-2"></i>Excel Dosyası Yükle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('periodic_maintenance.upload_excel') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label for="excel_file" class="form-label">
+                            <i class="fas fa-upload me-2"></i>Excel Dosyası Seçin
+                        </label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                    </div>
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Excel Dosya Formatı:</h6>
+                        <ul class="mb-0">
+                            <li>machine_model</li>
+                            <li>filter_name</li>
+                            <li>filter_part_code</li>
+                            <li>alternate_part_code</li>
+                            <li>original_price_eur</li>
+                            <li>alternate_price_eur</li>
+                            <li>maintenance_interval</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>İptal
+                    </button>
+                    <button type="submit" class="btn btn-cermak">
+                        <i class="fas fa-upload me-2"></i>Yükle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submit olduğunda sonuçları göster
+    const form = document.querySelector('form');
+    const results = document.querySelector('.maintenance-results');
+    
+    form.addEventListener('submit', function() {
+        results.classList.add('show');
+    });
+
+    // Yağ checkbox'ları için event handler
+    document.querySelectorAll('.oil-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const quantityDiv = document.getElementById('quantity_' + this.dataset.oilId);
+            if (this.checked) {
+                quantityDiv.style.display = 'block';
+                quantityDiv.querySelector('input').required = true;
+            } else {
+                quantityDiv.style.display = 'none';
+                quantityDiv.querySelector('input').required = false;
+            }
+        });
+    });
+
+    // Yağ miktarı değiştiğinde fiyat hesaplama
+    document.querySelectorAll('input[name^="oil_quantity_"]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            const oilId = this.name.split('_')[2];
+            const checkbox = document.querySelector(`input[name="oil_selected_${oilId}"]`);
+            if (checkbox && checkbox.checked) {
+                const quantity = parseInt(this.value) || 0;
+                const priceTL = parseFloat(checkbox.dataset.oilPriceTl);
+                const totalTL = quantity * priceTL;
+                // Burada toplam fiyatı gösterebilirsiniz
+                console.log(`Yağ ${oilId} toplam fiyat: ${totalTL.toFixed(2)} TL`);
+            }
+        });
+    });
+
+    // Hover efektleri için
+    const actionButtons = document.querySelectorAll('.action-button');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.querySelector('i').style.transform = 'scale(1.1) rotate(5deg)';
+        });
+        button.addEventListener('mouseleave', function() {
+            this.querySelector('i').style.transform = 'scale(1) rotate(0)';
+        });
+    });
+});
+</script>
+
+{% endblock %}

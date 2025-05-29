@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}
+Muhasebe ve Fatura - Henüz Aktif Değil
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <h1 class="display-4 text-danger fw-bold mb-4">Muhasebe ve Fatura</h1>
+        <p class="lead text-muted">Bu modül şu anda geliştirme aşamasındadır. Lütfen daha sonra tekrar deneyin.</p>
+        <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-danger mt-4">Ana Sayfaya Dön</a>
+    </div>
+</div>
+{% endblock %}

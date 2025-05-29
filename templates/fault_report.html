@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}
+Arıza Kayıt Formu
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4 text-danger">Arıza Kayıt Formu</h2>
+        <div class="card border-danger">
+            <div class="card-body">
+                <p class="text-muted mb-3">Seçilen Makine: <strong>{{ machine_model }}</strong> | Arıza Tipi: <strong>{{ fault_type }}</strong></p>
+                <form method="POST" action="{{ url_for('faults.fault_report_form', machine_model=machine_model, fault_type=fault_type) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">Ad</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">Soyad</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="city" class="form-label">Şehir</label>
+                        <input type="text" class="form-control" id="city" name="city" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Cep Telefonu</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="serial_number" class="form-label">Makine Seri No</label>
+                        <input type="text" class="form-control" id="serial_number" name="serial_number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Arızanın Genel Tanımı</label>
+                        <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="media_file" class="form-label">Arıza Videosu veya Görseli (Opsiyonel)</label>
+                        <input type="file" class="form-control" id="media_file" name="media_file" accept=".png,.jpg,.jpeg,.mp4,.mov">
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-danger">Gönder</button>
+                        <a href="{{ url_for('faults.new_fault_report') }}" class="btn btn-outline-danger ms-2">Geri</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

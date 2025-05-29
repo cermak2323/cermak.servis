@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Makine Yönetim Sistemi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto;">
+        <h1 class="display-4 text-danger fw-bold">Makine Yönetim Sistemi</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        {% if current_user.permissions.can_search_machines %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-search display-4 text-danger"></i>
+                    <h5 class="card-title mt-3">Makine Sorgulama</h5>
+                    <p class="card-text">Makine bilgilerini sorgulayın ve görüntüleyin.</p>
+                    <a href="{{ url_for('machines.machine_search') }}" class="btn btn-danger">Makine Sorgula</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if current_user.permissions.can_add_machines %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-plus-circle display-4 text-danger"></i>
+                    <h5 class="card-title mt-3">Yeni Makine Kaydı</h5>
+                    <p class="card-text">Yeni makine kaydı oluşturun.</p>
+                    <a href="{{ url_for('machines.add_machine') }}" class="btn btn-danger">Makine Ekle</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if current_user.permissions and (current_user.permissions.can_list_machines or current_user.role == 'admin') %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-list-ul display-4 text-danger"></i>
+                    <h5 class="card-title mt-3">Makine Listesi</h5>
+                    <p class="card-text">Tüm makineleri listeleyin.</p>
+                    <a href="{{ url_for('machines.list_machines') }}" class="btn btn-danger">Makine Listesi</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+    border: none;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.btn-danger {
+    border-radius: 25px;
+    padding: 8px 25px;
+}
+
+.display-4 {
+    font-size: 3rem;
+}
+</style>
+{% endblock %}

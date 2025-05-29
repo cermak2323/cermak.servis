@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Paneli - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="text-center mb-4 text-danger">Admin Paneli</h2>
+        <div class="card mb-4 border-danger">
+            <div class="card-body">
+                <div class="mb-3">
+                    <a href="{{ url_for('auth.create_user') }}" class="btn btn-success">Yeni Kullanıcı Oluştur</a>
+                </div>
+                <h5 class="text-danger mb-3">Kullanıcılar</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı Adı</th>
+                            <th>Rol</th>
+                            <th>Eylemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.role }}</td>
+                                <td>
+                                    <a href="{{ url_for('auth.edit_user', user_id=user.id) }}" class="btn btn-sm btn-danger me-2">Düzenle</a>
+                                    {% if user.username != 'admin' %}
+                                    <form action="{{ url_for('auth.delete_user', user_id=user.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mb-4 border-danger">
+            <div class="card-body">
+                <h5 class="text-danger mb-3">Duyuru Yönetimi</h5>
+                <div class="mb-3">
+                    <a href="{{ url_for('auth.manage_announcements') }}" class="btn btn-success">Duyuruları Yönet</a>
+                </div>
+            </div>
+        </div>
+        <div class="text-center">
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-danger">Geri Dön</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

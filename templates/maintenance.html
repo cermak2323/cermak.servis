@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% from "macros.html" import is_file_exists %}
+
+{% block title %}
+Bakım - {{ item.name }}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-5 hero-section">
+            <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto; animation: zoomIn 1s ease;">
+            <h1 class="display-4 text-danger fw-bold" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); animation: slideInFromLeft 1s ease;">Bakım Kayıtları</h1>
+            <p class="lead fw-light text-muted" style="animation: fadeInUp 1.5s ease;">Model: {{ item.name }}</p>
+            <!-- QR Kod Görüntüleme -->
+            {% if qr_code and qr_code.qr_code_url %}
+            <div class="text-center mb-3">
+                <img src="{{ url_for('static', filename=qr_code.qr_code_url) }}" 
+                     alt="QR Kod" class="img-fluid" style="max-width: 200px;">
+                <p class="mt-2">Bu QR kodu taratarak bu sayfaya erişebilirsiniz.</p>
+                <a href="{{ url_for('static', filename=qr_code.qr_code_url) }}" 
+                   class="btn btn-sm btn-outline-danger" download>
+                    <i class="fas fa-download me-1"></i>QR Kodu İndir
+                </a>
+            </div>
+            {% else %}
+            <p class="text-danger">QR kodu oluşturulamadı veya bulunamadı!</p>
+            {% endif %}
+        </div>
+
+        <h3 class="mb-4 text-danger">Bakım Kayıtları</h3>
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Tarih</th>
+                    <th>Açıklama</th>
+                    <th>Fatura</th>
+                    <th>Resim</th>
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                        <th>İşlemler</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                    <tr>
+                        <td>{{ record.maintenance_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ record.description }}</td>
+                        <td>
+                            {% if record.invoice_file %}
+                                <a href="{{ url_for('static', filename=record.invoice_file) }}" target="_blank">Görüntüle</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.image_file %}
+                                <a href="{{ url_for('static', filename=record.image_file) }}" target="_blank">Görüntüle</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                            <td>
+                                <a href="{{ url_for('maintenance.edit_maintenance_record', item_id=item.id, record_id=record.id) }}" class="btn btn-sm btn-outline-warning">Düzenle</a>
+                                <a href="{{ url_for('maintenance.delete_maintenance_record', item_id=item.id, record_id=record.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bu kaydı silmek istediğinize emin misiniz?')">Sil</a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3 class="mb-4 text-danger">Yeni Bakım Kaydı Ekle</h3>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="maintenance_date" class="form-label">Bakım Tarihi</label>
+                <input type="date" class="form-control" id="maintenance_date" name="maintenance_date" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="invoice_file" class="form-label">Fatura (PDF)</label>
+                <input type="file" class="form-control" id="invoice_file" name="invoice_file" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="image_file" class="form-label">Resim (JPEG/PNG)</label>
+                <input type="file" class="form-control" id="image_file" name="image_file" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-danger">Kaydet</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        padding: 2rem 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    @keyframes zoomIn {
+        0% { opacity: 0; transform: scale(0.5); }
+        50% { transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideInFromLeft {
+        0% { opacity: 0; transform: translateX(-60px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInUp {
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

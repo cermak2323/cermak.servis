@@ -1,0 +1,25 @@
+        <h3 style="color:#a52834; margin-top:30px;">Yedek Parçalar</h3>
+        <table>
+            <tr class="header-row">
+                <th>SIRA NO</th>
+                <th>PARÇA NO</th>
+                <th>AÇIKLAMA</th>
+                <th>ADET</th>
+                <th>BİRİM FİYAT (TL)</th>
+                <th>TOPLAM (TL)</th>
+            </tr>
+            {% if offer.parts and offer.parts|length > 0 %}
+                {% for part in offer.parts %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ part.part_code or '-' }}</td>
+                    <td>{{ part.name }}</td>
+                    <td>{{ part.quantity }}</td>
+                    <td>{{ part.price_try | default('-') }}</td>
+                    <td>{{ (part.price_try * part.quantity) | default('-') }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                {{ parts_table_content|safe }}
+            {% endif %}
+        </table> 

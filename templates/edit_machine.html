@@ -1,0 +1,108 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto;">
+        <h1 class="display-4 text-danger fw-bold">Makine Düzenle</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="model" class="form-label">Makine Modeli</label>
+                            <input type="text" class="form-control" id="model" name="model" value="{{ machine.model }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="serial_number" class="form-label">Seri Numarası</label>
+                            <input type="text" class="form-control" id="serial_number" name="serial_number" value="{{ machine.serial_number }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="owner_name" class="form-label">Makine Alıcısı</label>
+                            <input type="text" class="form-control" id="owner_name" name="owner_name" value="{{ machine.owner_name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Telefon Numarası</label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ machine.phone_number }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Telefon Numarası</label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ machine.phone_number }}" required pattern="[0-9]{10,11}" placeholder="5XX XXX XX XX">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="city" class="form-label">İl</label>
+                            <select class="form-control" id="city" name="city" required>
+                                <option value="">İl seçiniz</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Tam Adres</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" required>{{ machine.address }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="responsible_service" class="form-label">Yetkili Servis</label>
+                            <select class="form-control" id="responsible_service" name="responsible_service" required>
+                                <!-- Mevcut servisleri listeleyecek options -->
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ekipmanlar</label>
+                            <div class="equipment-list">
+                                {% for equipment in machine.equipment %}
+                                <div class="equipment-item mb-2">
+                                    <select class="form-control mb-2" name="equipment_type[]">
+                                        <option value="quickhitch" {% if equipment.equipment_type == 'quickhitch' %}selected{% endif %}>Quick Hitch</option>
+                                        <option value="kova" {% if equipment.equipment_type == 'kova' %}selected{% endif %}>Kova</option>
+                                        <option value="diger" {% if equipment.equipment_type == 'diger' %}selected{% endif %}>Diğer</option>
+                                    </select>
+                                    <input type="text" class="form-control mb-2" name="equipment_size[]" value="{{ equipment.size }}" placeholder="Boyut">
+                                    <textarea class="form-control" name="equipment_details[]" placeholder="Detaylar">{{ equipment.details }}</textarea>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="equipment_delivered[]" value="{{ equipment.id }}" {% if equipment.is_delivered %}checked{% endif %}>
+                                        <label class="form-check-label">Teslim Edildi</label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-secondary mt-2" id="addEquipment">+ Ekipman Ekle</button>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-danger btn-lg">Değişiklikleri Kaydet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('addEquipment').addEventListener('click', function() {
+    const template = `
+        <div class="equipment-item mb-2">
+            <select class="form-control mb-2" name="equipment_type[]">
+                <option value="">Ekipman Türü Seçin</option>
+                <option value="quickhitch">Quick Hitch</option>
+                <option value="kova">Kova</option>
+                <option value="diger">Diğer</option>
+            </select>
+            <input type="text" class="form-control mb-2" name="equipment_size[]" placeholder="Boyut">
+            <textarea class="form-control" name="equipment_details[]" placeholder="Detaylar"></textarea>
+        </div>
+    `;
+    document.querySelector('.equipment-list').insertAdjacentHTML('beforeend', template);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+
+{% extends "base.html" %}
+{% block title %}Arıza Tespit ve Çözüm Sistemi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-danger">Arıza Tespit ve Çözüm Sistemi</h2>
+    
+    <div class="row justify-content-center g-4">
+        <!-- Arıza Çözümleri Kartı -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-danger">
+                <div class="card-body text-center">
+                    <i class="bi bi-search fs-1 text-danger mb-3"></i>
+                    <h5 class="card-title">Arıza Çözümleri</h5>
+                    <p class="card-text">Mevcut arıza çözümlerini arayın ve inceleyin</p>
+                    <a href="{{ url_for('faults.fault_search') }}" class="btn btn-danger">Çözümleri Ara</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Genel Çözüm Ekleme Kartı -->
+        {% if current_user.permissions and current_user.permissions.can_add_solutions %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-danger">
+                <div class="card-body text-center">
+                    <i class="bi bi-plus-circle fs-1 text-danger mb-3"></i>
+                    <h5 class="card-title">Genel Çözüm Ekle</h5>
+                    <p class="card-text">Yeni genel çözümler ekleyin ve yönetin</p>
+                    <a href="{{ url_for('faults.add_general_solution') }}" class="btn btn-danger">Çözüm Ekle</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Arıza Bildirimi Kartı -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-danger">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle fs-1 text-danger mb-3"></i>
+                    <h5 class="card-title">Arıza Bildirimi</h5>
+                    <p class="card-text">Yeni arıza kaydı oluşturun</p>
+                    <a href="{{ url_for('faults.new_fault_report') }}" class="btn btn-danger">Arıza Bildir</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

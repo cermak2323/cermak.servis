@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Ekipman Durumu Güncelleme{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0">{{ machine.serial_number }} - Ekipman Durumu Güncelleme</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% for equipment in machine.equipment %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    {{ equipment.equipment_type }}
+                                    {% if equipment.subtype %}
+                                    - {{ equipment.subtype }}
+                                    {% endif %}
+                                    {% if equipment.width %}
+                                    ({{ equipment.width }}cm)
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Durum</label>
+                                            <select name="status_{{ equipment.id }}" class="form-control form-control-lg" required>
+                                                <option value="Beklemede" {% if equipment.delivery_status == 'Beklemede' %}selected{% endif %}>Beklemede</option>
+                                                <option value="Hazırlanıyor" {% if equipment.delivery_status == 'Hazırlanıyor' %}selected{% endif %}>Hazırlanıyor</option>
+                                                <option value="Teslime Hazır" {% if equipment.delivery_status == 'Teslime Hazır' %}selected{% endif %}>Teslime Hazır</option>
+                                                <option value="Teslim Edildi" {% if equipment.delivery_status == 'Teslim Edildi' %}selected{% endif %}>Teslim Edildi</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Teslim Tarihi</label>
+                                            <input type="date" name="delivery_date_{{ equipment.id }}" 
+                                                   class="form-control form-control-lg"
+                                                   value="{{ equipment.delivery_date.strftime('%Y-%m-%d') if equipment.delivery_date else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Notlar</label>
+                                            <textarea name="notes_{{ equipment.id }}" class="form-control form-control-lg" 
+                                                      rows="2">{{ equipment.notes or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="text-center mt-4">
+                            <a href="{{ url_for('machines.machine_maintenance', machine_id=machine.id) }}" 
+                               class="btn btn-secondary btn-lg me-2">İptal</a>
+                            <button type="submit" class="btn btn-danger btn-lg">Güncelle</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

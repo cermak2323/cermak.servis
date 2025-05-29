@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ catalog.name }} - Cermak Servis Teknik Bilgi Sistemi
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-5 hero-section">
+            <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto; animation: zoomIn 1s ease;">
+            <h1 class="display-4 text-danger fw-bold" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); animation: slideInFromLeft 1s ease;">{{ catalog.name }}</h1>
+            <p class="lead fw-light text-muted" style="animation: fadeInUp 1.5s ease;">Model Bazlı Teknik Kataloglar</p>
+        </div>
+
+        <div class="row g-4">
+            {% for item in items %}
+                <div class="col-md-6 col-lg-4" style="--card-index: {{ loop.index }};">
+                    <div class="card h-100 border-danger animate-card">
+                        <div class="card-body text-center">
+                            <div class="icon-wrapper mb-3">
+                                <img src="{{ url_for('static', filename='images/excavator.svg') }}" alt="Excavator Icon" style="width: 3rem; height: 3rem;">
+                            </div>
+                            <h3 class="card-title fw-bold">{{ item.name }}</h3>
+                            <ul class="list-unstyled mt-3">
+                                {% if item.motor_pdf_url %}
+                                    <li><a href="{{ url_for('static', filename=item.motor_pdf_url) }}" target="_blank" class="text-muted text-decoration-none">Motor Parça Kataloğu</a></li>
+                                {% endif %}
+                                {% if item.yedek_parca_pdf_url %}
+                                    <li><a href="{{ url_for('static', filename=item.yedek_parca_pdf_url) }}" target="_blank" class="text-muted text-decoration-none">Yedek Parça Kataloğu</a></li>
+                                {% endif %}
+                                {% if item.operator_pdf_url %}
+                                    <li><a href="{{ url_for('static', filename=item.operator_pdf_url) }}" target="_blank" class="text-muted text-decoration-none">Operatör Manuel</a></li>
+                                {% endif %}
+                                {% if item.service_pdf_url %}
+                                    <li><a href="{{ url_for('static', filename=item.service_pdf_url) }}" target="_blank" class="text-muted text-decoration-none">Service Manuel</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('catalogs.add_catalog_item') }}" class="btn btn-danger btn-lg animate-button">Yeni Katalog Öğesi Ekle</a>
+            {% endif %}
+            <a href="{{ url_for('catalogs.catalogs_view') }}" class="btn btn-outline-danger btn-lg mt-3">Geri Dön</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hero Bölümü */
+    .hero-section {
+        padding: 2rem 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Kart Animasyonları */
+    .animate-card {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        background: #fff;
+        border: 3px solid #dc3545;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s ease;
+        animation: fadeInUp 0.8s ease;
+        animation-delay: calc(0.2s * var(--card-index));
+    }
+    .animate-card:hover {
+        transform: translateY(-15px) scale(1.05);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: #fff;
+    }
+    .animate-card:hover .card-title,
+    .animate-card:hover .text-muted {
+        color: #fff !important;
+    }
+    .animate-card img {
+        transition: transform 0.4s ease;
+    }
+    .animate-card:hover img {
+        transform: scale(1.2) rotate(10deg);
+    }
+    .animate-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: skewX(-20deg);
+        transition: all 0.5s;
+        opacity: 0;
+    }
+    .animate-card:hover::before {
+        opacity: 1;
+        top: 100%;
+        left: 100%;
+    }
+
+    /* İkon Çerçevesi */
+    .icon-wrapper {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+        background: rgba(220, 53, 69, 0.1);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+    .animate-card:hover .icon-wrapper {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Buton Animasyonu */
+    .animate-button {
+        transition: all 0.3s ease;
+    }
+    .animate-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Animasyonlar */
+    @keyframes zoomIn {
+        0% { opacity: 0; transform: scale(0.5); }
+        50% { transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideInFromLeft {
+        0% { opacity: 0; transform: translateX(-60px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInUp {
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

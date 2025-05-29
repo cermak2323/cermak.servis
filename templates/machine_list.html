@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <img src="{{ url_for('static', filename='takeuchi.png') }}" alt="Takeuchi Logo" class="mb-4" style="height: 100px; width: auto;">
+        <h1 class="display-4 text-danger fw-bold">Makine Listesi</h1>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Seri No</th>
+                            <th>Model</th>
+                            <th>Sahibi</th>
+                            <th>Telefon</th>
+                            <th>Adres</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for machine in machines %}
+                        <tr>
+                            <td>{{ machine.serial_number }}</td>
+                            <td>{{ machine.model }}</td>
+                            <td>{{ machine.owner_name }}</td>
+                            <td>{{ machine.phone_number if machine.phone_number else '-' }}</td>
+                            <td>{{ machine.address if machine.address else '-' }}</td>
+                            <td>
+                                <a href="{{ url_for('machines.machine_maintenance', machine_id=machine.id) }}" class="btn btn-sm btn-primary">Detay</a>
+                                <a href="{{ url_for('machines.edit_machine', machine_id=machine.id) }}" class="btn btn-sm btn-warning">Düzenle</a>
+                                {% if current_user.permissions.can_edit_maintenance %}
+                                <button onclick="deleteMachine({{ machine.id }})" class="btn btn-sm btn-danger">Sil</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteMachine(machineId) {
+    if (confirm('Bu makineyi silmek istediğinizden emin misiniz?')) {
+        window.location.href = "{{ url_for('machines.delete_machine', machine_id=0) }}".replace('0', machineId);
+    }
+}
+</script>
+{% endblock %}
