@@ -554,9 +554,13 @@ if __name__ == '__main__':
     with app.app_context():
         initialize_database()
         fetch_exchange_rates()
-    
     # QR kodları güncelle
     update_existing_qr_codes()
-    
+    # Döviz kuru güncelleme zamanlayıcısını başlat (her saat başı otomatik güncelle)
+    try:
+        scheduler.start()
+        logger.info('Döviz kuru güncelleme zamanlayıcısı başlatıldı (her saat başı)')
+    except Exception as e:
+        logger.error(f'Zamanlayıcı başlatılamadı: {e}')
     # Uygulama başlat
     app.run(debug=True, host='0.0.0.0', port=5000)

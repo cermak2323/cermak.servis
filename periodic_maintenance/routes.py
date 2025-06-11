@@ -1,14 +1,20 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Eksik model ve modül importları
+from database import db
+from models import User, Permission, Part, Catalog, CatalogItem, Fault, FaultSolution, FaultReport, Machine, MaintenanceRecord, MachineMaintenanceRecord, QRCode, Invoice, Offer, PeriodicMaintenance, Oil, Notification
+import io
+
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, jsonify, current_app, session
 from flask_login import login_required, current_user
-from database import db
-from models import PeriodicMaintenance, Offer, Part, CatalogItem, Oil
 from datetime import datetime, timezone, timedelta
 import os
 import time
 from weasyprint import HTML
 import logging
 from utils import exchange_rates, get_latest_exchange_rate, get_current_exchange_rate  # Dinamik döviz kurlarını utils modülünden al, yeni import eklendi
-from flask_mail import Message
 import pandas as pd  # Excel işlemleri için
 from sqlalchemy import inspect
 from sqlalchemy.sql import text
@@ -103,33 +109,6 @@ def periodic_maintenance():
         selected_oils=selected_oils  # Seçilmiş yağları template'e gönder
     )
 
-def send_status_update_email(offer, new_status, recipient_emails):
-    msg = Message(
-        subject=f"Teklif Durumu Güncellendi: {offer.offer_number}",
-        recipients=recipient_emails,
-        body=f"""
-Merhaba,
-
-Teklif numarası {offer.offer_number} olan teklifin durumu güncellendi.
-
-**Yeni Durum:** {new_status}
-**Makine Modeli:** {offer.machine_model}
-**Müşteri:** {offer.customer_first_name} {offer.customer_last_name}
-**Şirket Adı:** {offer.company_name}
-**Toplam Tutar:** {offer.total_amount} TL
-
-Detayları görüntülemek için lütfen sisteme giriş yapın.
-
-Saygılar,
-Cermak Servis Hizmetleri
-"""
-    )
-    try:
-        mail.send(msg)
-        logger.debug(f"E-posta gönderildi: {recipient_emails}")
-    except Exception as e:
-        logger.error(f"E-posta gönderilirken hata oluştu: {str(e)}")
-
 @periodic_maintenance_bp.route("/update_database_schema", methods=["GET"])
 @login_required
 def update_database_schema():
@@ -144,7 +123,7 @@ def update_database_schema():
         models = [
             User, Permission, Part, Catalog, CatalogItem, Fault,
             FaultSolution, FaultReport, Machine, MaintenanceRecord,
-            MachineMaintenanceRecord, QRCode, Warranty, Invoice,
+            MachineMaintenanceRecord, QRCode, Invoice,
             PeriodicMaintenance, Offer
         ]
 
@@ -580,6 +559,35 @@ def download_pdf():
         """
         row_number += 1
 
+    # Toplamları hesapla
+    subtotal = total_parts_price + total_oils_price + labor_cost + travel_cost
+
+    # İskonto hesapla
+    discount_amount = 0
+    discount_type = request.form.get("discount_type", "none")
+    discount_value = float(request.form.get("discount_value", 0))
+
+    if discount_type == "percentage":
+        discount_amount = subtotal * (discount_value / 100)
+    elif discount_type == "amount":
+        discount_amount = discount_value
+
+    # KDV ve genel toplamı hesapla
+    discounted_total = subtotal - discount_amount
+    kdv = discounted_total * 0.20
+    grand_total = discounted_total + kdv
+
+    serial_number = request.form.get("serial_number", "")
+    first_name = request.form.get("first_name", "")
+    last_name = request.form.get("last_name", "")
+    company_name = request.form.get("company_name", "")
+    phone = request.form.get("phone", "")
+    offeror_name = request.form.get("offeror_name", "")
+    selected_oils = session.get('selected_oils', [])
+    service_total = subtotal
+    discount_label = "İSKONTO" if discount_type != "none" else ""
+    total_amount_try = grand_total
+
     # Mevcut download_pdf fonksiyonunun içindeki html_content kısmını güncelliyoruz
     html_content = f"""
 <!DOCTYPE html>
@@ -875,46 +883,6 @@ def download_pdf():
 </html>
 """
 
-    # Seçilen parçaları ve filtre bilgilerini ekle
-    total_parts = []
-
-    # Manuel eklenen parçaları ekle
-    for part in selected_parts_data:
-        total_parts.append({
-            "code": part["part_code"],
-            "name": part["filter_name"],
-            "quantity": 1,
-            "unit_price_try": part["price_eur"] * exchange_rates["EUR"],
-            "total_price_try": part["price_eur"] * exchange_rates["EUR"]
-        })
-
-    # Bakım filtrelerini ekle    
-    for maintenance in valid_maintenances:
-        if maintenance["price_eur"] > 0:
-            total_parts.append({
-                "code": maintenance["part_code"],
-                "name": maintenance["filter_name"],
-                "quantity": 1,
-                "unit_price_try": maintenance["price_eur"] * exchange_rates["EUR"],
-                "total_price_try": maintenance["price_eur"] * exchange_rates["EUR"]
-            })
-
-    # Parts table content for PDF
-    parts_table_content = ""
-    for idx, part in enumerate(total_parts, 1):
-        parts_table_content += f"""
-            <tr>
-                <td>{idx}</td>
-                <td>{part['code']}</td>
-                <td>{part['name']}</td>
-                <td>1</td>
-                <td>{part['unit_price_try']:,.2f} TL</td>
-                <td>{part['total_price_try']:,.2f} TL</td>
-            </tr>
-        """
-
-    html_content = html_content.replace("{table_content}", parts_table_content)
-
     # HTML içeriğini geçici bir dosyaya kaydet
     temp_html_path = os.path.join("static", "offers", f"temp_{offer_number}.html")
     os.makedirs(os.path.dirname(temp_html_path), exist_ok=True)
@@ -1001,7 +969,7 @@ def offer_list():
             date_to = datetime.strptime(date_to, "%Y-%m-%d")
             query = query.filter(Offer.created_at <= date_to)
         except ValueError:
-            flash("Geçersiz bitiş tarihi formatı!", "danger")
+            flash("Geçersiz bitiş tarihi!", "danger")
 
     # Sayfalama ile teklifleri al (sayfa başına 10 teklif)
     per_page = 10
@@ -1046,11 +1014,20 @@ def approve_offer(offer_id):
         return redirect(url_for("periodic_maintenance.offer_list"))
 
     offer.status = "Teklif Kabul Edildi"
-    # Depocuya e-posta bildirimi gönder
-    recipient_emails = ["depo@example.com"]
-    send_status_update_email(offer, "Teklif Kabul Edildi", recipient_emails)
     db.session.commit()
-    flash("Teklif onaylandı. Depo ekibine bildirim gönderildi.", "success")
+
+    # Notify all Depo users
+    depo_users = User.query.filter_by(role="Depo").all()
+    for user in depo_users:
+        notif = Notification(
+            user_id=user.id,
+            message=f"{offer.offer_number} numaralı teklif onaylandı.",
+            url=url_for('periodic_maintenance.offer_detail', offer_id=offer.id)
+        )
+        db.session.add(notif)
+    db.session.commit()
+
+    flash("Teklif onaylandı.", "success")
     return redirect(url_for("periodic_maintenance.offer_list"))
 
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/reject", methods=["POST"])
@@ -1067,8 +1044,6 @@ def reject_offer(offer_id):
 
     offer.status = "Teklif Kabul Edilmedi"
     offer.is_active = False  # Teklif erişime kapanacak
-    recipient_emails = ["admin@example.com"]
-    send_status_update_email(offer, "Teklif Kabul Edilmedi", recipient_emails)
     db.session.commit()
     flash("Teklif reddedildi ve erişime kapatıldı.", "success")
     return redirect(url_for("periodic_maintenance.offer_list"))
@@ -1086,10 +1061,8 @@ def parts_prepared(offer_id):
         return redirect(url_for("periodic_maintenance.offer_list"))
 
     offer.status = "Parçalar Hazırlandı"
-    recipient_emails = ["servis@example.com"]
-    send_status_update_email(offer, "Parçalar Hazırlandı", recipient_emails)
     db.session.commit()
-    flash("Parçalar hazırlandı. Servis ekibine bildirim gönderildi.", "success")
+    flash("Parçalar hazırlandı.", "success")
     return redirect(url_for("periodic_maintenance.offer_list"))
 
 @periodic_maintenance_bp.route("/offer/<int:offer_id>/parts_delivered", methods=["POST"])
@@ -1105,8 +1078,6 @@ def parts_delivered(offer_id):
         return redirect(url_for("periodic_maintenance.offer_list"))
 
     offer.status = "Parçalar Teslim Edildi"
-    recipient_emails = ["servis@example.com"]
-    send_status_update_email(offer, "Parçalar Teslim Edildi", recipient_emails)
     db.session.commit()
     flash("Parçalar servise teslim edildi.", "success")
     return redirect(url_for("periodic_maintenance.offer_list"))
@@ -1124,8 +1095,6 @@ def service_started(offer_id):
         return redirect(url_for("periodic_maintenance.offer_list"))
 
     offer.status = "Servis Yola Çıktı"
-    recipient_emails = ["admin@example.com"]
-    send_status_update_email(offer, "Servis Yola Çıktı", recipient_emails)
     db.session.commit()
     flash("Servis yola çıktı.", "success")
     return redirect(url_for("periodic_maintenance.offer_list"))
@@ -1138,7 +1107,7 @@ def invoice_offer(offer_id):
         return redirect(url_for("auth.dashboard"))
 
     offer = Offer.query.get_or_404(offer_id)
-    if offer.status != "Servis Yola Çıktı":
+    if offer.status != "Servis Yola Çıkmış":
         flash("Önce servis yola çıkmalı!", "danger")
         return redirect(url_for("periodic_maintenance.offer_list"))
 
@@ -1149,8 +1118,6 @@ def invoice_offer(offer_id):
 
     offer.status = "Faturalandırıldı"
     offer.invoice_number = invoice_number.upper()
-    recipient_emails = ["admin@example.com"]
-    send_status_update_email(offer, "Faturalandırıldı", recipient_emails)
     db.session.commit()
     flash("Teklif faturalandırıldı.", "success")
     return redirect(url_for("periodic_maintenance.offer_list"))
@@ -1168,8 +1135,6 @@ def payment_received(offer_id):
         return redirect(url_for("periodic_maintenance.offer_list"))
 
     offer.status = "Ödeme Alındı"
-    recipient_emails = ["admin@example.com"]
-    send_status_update_email(offer, "Ödeme Alındı", recipient_emails)
     db.session.commit()
     flash("Ödeme alındı.", "success")
     return redirect(url_for("periodic_maintenance.offer_list"))
@@ -1211,9 +1176,6 @@ def bulk_update_offers():
                     # Teklif reddedildiyse erişime kapat
                     if new_status == "Teklif Kabul Edilmedi":
                         offer.is_active = False
-                    # E-posta bildirimi gönder
-                    recipient_emails = ["depo@example.com", "servis@example.com", "admin@example.com"]
-                    send_status_update_email(offer, new_status, recipient_emails)
                 db.session.commit()
                 flash("Seçilen tekliflerin durumu güncellendi.", "success")
             except Exception as e:
@@ -1267,7 +1229,7 @@ def export_offers():
             date_to = datetime.strptime(date_to, "%Y-%m-%d")
             query = query.filter(Offer.created_at <= date_to)
         except ValueError:
-            flash("Geçersiz bitiş tarihi formatı!", "danger")
+            flash("Geçersiz bitiş tarihi!", "danger")
 
     offers = query.order_by(Offer.created_at.desc()).all()
 
@@ -1413,38 +1375,43 @@ def generate_offer_pdf(offer_id):
         parts_table_content = ""
         row_number = 1
         total_parts_try = 0
-        
-        # Bakım parçalarını ekle
+        # Get maintenances for the offer
         maintenances = PeriodicMaintenance.query.filter_by(
             machine_model=offer.machine_model,
             maintenance_interval=offer.maintenance_interval
         ).all()
-        
         for maintenance in maintenances:
+            part_code = None
+            price_eur = None
+            filter_name = maintenance.filter_name
             if offer.filter_type == "original":
-                price_eur = maintenance.original_price_eur
-                part_code = maintenance.filter_part_code
+                if maintenance.filter_part_code and maintenance.original_price_eur and maintenance.original_price_eur > 0:
+                    part_code = maintenance.filter_part_code
+                    price_eur = maintenance.original_price_eur
             else:
-                price_eur = maintenance.alternate_price_eur
-                part_code = maintenance.alternate_part_code
-            
-            if price_eur and part_code:
+                if maintenance.alternate_part_code and maintenance.alternate_price_eur and maintenance.alternate_price_eur > 0:
+                    part_code = maintenance.alternate_part_code
+                    price_eur = maintenance.alternate_price_eur
+                elif maintenance.filter_part_code and maintenance.original_price_eur and maintenance.original_price_eur > 0:
+                    part_code = maintenance.filter_part_code
+                    price_eur = maintenance.original_price_eur
+                    filter_name = f"{filter_name} (Muadil bulunmadığından orijinal)"
+            if part_code and price_eur:
                 price_try = price_eur * eur_to_try
                 total_try = price_try
                 total_parts_try += total_try
-                
+
                 parts_table_content += f"""
                     <tr>
                         <td>{row_number}</td>
                         <td>{part_code}</td>
-                        <td>{maintenance.filter_name}</td>
+                        <td>{filter_name}</td>
                         <td>1</td>
                         <td>{price_try:,.2f} TL</td>
                         <td>{total_try:,.2f} TL</td>
                     </tr>
                 """
                 row_number += 1
-        
         # Manuel eklenen parçaları ekle
         if offer.parts:
             try:
@@ -1453,13 +1420,11 @@ def generate_offer_pdf(offer_id):
                     for part in parts_data:
                         if not isinstance(part, dict):
                             continue
-                            
                         price_eur = float(part.get('price_eur', 0))
                         quantity = int(part.get('quantity', 1))
                         price_try = price_eur * eur_to_try
                         total_try = price_try * quantity
                         total_parts_try += total_try
-                        
                         parts_table_content += f"""
                             <tr>
                                 <td>{row_number}</td>
@@ -1474,8 +1439,7 @@ def generate_offer_pdf(offer_id):
             except Exception as e:
                 logger.error(f"Manuel parçalar eklenirken hata: {str(e)}")
                 current_app.logger.error(f"Manuel parçalar eklenirken hata: {str(e)}")
-        
-        # Yağları ekle
+        # Oils
         total_oils_try = 0
         if offer.oils:
             try:
@@ -1488,7 +1452,6 @@ def generate_offer_pdf(offer_id):
                     price_try = price_eur * eur_to_try
                     total_try = price_try * quantity
                     total_oils_try += total_try
-                    
                     parts_table_content += f"""
                         <tr>
                             <td>{row_number}</td>
@@ -1502,11 +1465,23 @@ def generate_offer_pdf(offer_id):
                     row_number += 1
             except Exception as e:
                 logger.error(f"Yağlar eklenirken hata: {str(e)}")
-        
-        # İşçilik ve yol giderlerini ekle
+        # Always show oil row, even if zero
+        if total_oils_try == 0:
+            parts_table_content += f"""
+                <tr>
+                    <td>{row_number}</td>
+                    <td>-</td>
+                    <td>Yağlar</td>
+                    <td>0</td>
+                    <td>0,00 TL</td>
+                    <td>0,00 TL</td>
+                </tr>
+            """
+            row_number += 1
+        # Labor
         labor_travel_try = 0
-        if offer.labor_cost > 0:
-            labor_cost_try = offer.labor_cost * eur_to_try
+        labor_cost_try = offer.labor_cost * eur_to_try if offer.labor_cost else 0
+        if labor_cost_try > 0:
             labor_travel_try += labor_cost_try
             parts_table_content += f"""
                 <tr>
@@ -1519,9 +1494,21 @@ def generate_offer_pdf(offer_id):
                 </tr>
             """
             row_number += 1
-            
-        if offer.travel_cost > 0:
-            travel_cost_try = offer.travel_cost * eur_to_try
+        else:
+            parts_table_content += f"""
+                <tr>
+                    <td>{row_number}</td>
+                    <td>CER001</td>
+                    <td>İŞÇİLİK BEDELİ</td>
+                    <td>0</td>
+                    <td>0,00 TL</td>
+                    <td>0,00 TL</td>
+                </tr>
+            """
+            row_number += 1
+        # Travel
+        travel_cost_try = offer.travel_cost * eur_to_try if offer.travel_cost else 0
+        if travel_cost_try > 0:
             labor_travel_try += travel_cost_try
             parts_table_content += f"""
                 <tr>
@@ -1534,7 +1521,19 @@ def generate_offer_pdf(offer_id):
                 </tr>
             """
             row_number += 1
-        
+        else:
+            parts_table_content += f"""
+                <tr>
+                    <td>{row_number}</td>
+                    <td>CER002</td>
+                    <td>YOL GİDERİ</td>
+                    <td>0</td>
+                    <td>0,00 TL</td>
+                    <td>0,00 TL</td>
+                </tr>
+            """
+            row_number += 1
+
         # Toplam tutarları hesapla
         subtotal_try = total_parts_try + total_oils_try + labor_travel_try
         
@@ -1548,7 +1547,7 @@ def generate_offer_pdf(offer_id):
         discounted_total = subtotal_try - discount_amount
         kdv = discounted_total * 0.20
         total_amount_try = discounted_total + kdv
-        
+
         # offer.parts listesini fiyatlarla güncelle
         updated_parts = []
         if offer.parts:
@@ -1720,6 +1719,8 @@ def create_offer():
         set([row[0] for row in PeriodicMaintenance.query.with_entities(PeriodicMaintenance.machine_model).distinct().all()])
     )
 
+   
+
     # Yağları al
     oils = Oil.query.all()
     
@@ -1879,7 +1880,7 @@ def create_offer():
                 discount_value=discount_value,
                 discount_amount=discount_amount,
                 subtotal=subtotal_eur,  # Euro olarak kaydet
-                grand_total=grand_total_tl,  # TL olarak kaydet
+                grand_total=grand_total_tl,  # TL olarak kaydediliyor
                 status="Teklif Verildi",
                 is_active=True,
                 created_by=current_user.id
@@ -2036,17 +2037,6 @@ def update_offer_status(offer_id):
         offer.status_history = []
     offer.status_history.append(status_history)
 
-    # E-posta bildirimleri
-    notifications = {
-        "Onaylandı": ["depo@example.com"],
-        "Parçalar Hazırlandı": ["servis@example.com"],
-        "Servise Teslim Edildi": ["muhasebe@example.com"],
-        "Faturalandırıldı": ["yonetim@example.com"]
-    }
-
-    if new_status in notifications:
-        send_status_update_email(offer, new_status, notifications[new_status])
-
     try:
         db.session.commit()
         flash(f"Teklif durumu '{new_status}' olarak güncellendi.", "success")
@@ -2102,3 +2092,87 @@ def get_offer_parts(offer_id):
     except Exception as e:
         current_app.logger.error(f"Parçalar getirilirken hata: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@periodic_maintenance_bp.route('/offer/<int:offer_id>')
+@login_required
+def offer_detail(offer_id):
+    offer = Offer.query.get_or_404(offer_id)
+    import json
+    # Parçaları ve yağları ayrıştır
+    try:
+        offer.parts_list = json.loads(offer.parts) if offer.parts else []
+    except Exception:
+        offer.parts_list = []
+    try:
+        offer.oils_list = json.loads(offer.oils) if offer.oils else []
+    except Exception:
+        offer.oils_list = []
+
+    # --- Filtre, yağ, işçilik, yol detaylarını parts_list'e ekle (PDF'deki gibi) ---
+    # Filtre ve yağlar
+    eur_to_try = get_current_exchange_rate() if 'get_current_exchange_rate' in globals() else 35.0
+    # Filtreler (bakım tablosundan)
+    from models import PeriodicMaintenance
+    filter_rows = []
+    maintenances = PeriodicMaintenance.query.filter_by(
+        machine_model=offer.machine_model,
+        maintenance_interval=offer.maintenance_interval
+    ).all() if hasattr(offer, 'machine_model') and hasattr(offer, 'maintenance_interval') else []
+    for maintenance in maintenances:
+        part_code = None
+        price_eur = None
+        filter_name = maintenance.filter_name
+        if offer.filter_type == "original":
+            if maintenance.filter_part_code and maintenance.original_price_eur and maintenance.original_price_eur > 0:
+                part_code = maintenance.filter_part_code
+                price_eur = maintenance.original_price_eur
+        else:
+            if maintenance.alternate_part_code and maintenance.alternate_price_eur and maintenance.alternate_price_eur > 0:
+                part_code = maintenance.alternate_part_code
+                price_eur = maintenance.alternate_price_eur
+            elif maintenance.filter_part_code and maintenance.original_price_eur and maintenance.original_price_eur > 0:
+                part_code = maintenance.filter_part_code
+                price_eur = maintenance.original_price_eur
+                filter_name = f"{filter_name} (Muadil bulunmadığından orijinal)"
+        if part_code and price_eur:
+            price_try = price_eur * eur_to_try
+            filter_rows.append({
+                'part_code': part_code,
+                'name': filter_name,
+                'quantity': 1,
+                'price_try': price_try
+            })
+    # Yağlar
+    for oil in offer.oils_list:
+        oil_name = oil.get('name', '')
+        oil_code = oil.get('code', '-')
+        price_eur = oil.get('price_eur', 0)
+        quantity = oil.get('quantity', 1)
+        price_try = price_eur * eur_to_try
+        filter_rows.append({
+            'part_code': oil_code,
+            'name': oil_name,
+            'quantity': quantity,
+            'price_try': price_try
+        })
+    # İşçilik ve yol
+    if hasattr(offer, 'labor_cost'):
+        labor_cost = offer.labor_cost * eur_to_try if offer.labor_cost else 0
+        filter_rows.append({
+            'part_code': 'CER001',
+            'name': 'İŞÇİLİK BEDELİ',
+            'quantity': 1 if labor_cost > 0 else 0,
+            'price_try': labor_cost
+        })
+    if hasattr(offer, 'travel_cost'):
+        travel_cost = offer.travel_cost * eur_to_try if offer.travel_cost else 0
+        filter_rows.append({
+            'part_code': 'CER002',
+            'name': 'YOL GİDERİ',
+            'quantity': 1 if travel_cost > 0 else 0,
+            'price_try': travel_cost
+        })
+    # Manuel eklenen parçalar zaten offer.parts_list'te
+    # Hepsini birleştir
+    offer.all_parts_list = filter_rows + offer.parts_list
+    return render_template('offer_detail.html', offer=offer)

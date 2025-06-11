@@ -201,8 +201,8 @@ Teklif Listesi - Cermak Servis Hizmetleri
                             </thead>
                             <tbody>
                                 {% for offer in offers %}
-                                <tr>
-                                    <td><input type="checkbox" name="offer_ids" value="{{ offer.id }}"></td>
+                                <tr class="offer-card" onclick="window.location='{{ url_for('periodic_maintenance.offer_detail', offer_id=offer.id) }}'" style="cursor:pointer;">
+                                    <td><input type="checkbox" name="offer_ids" value="{{ offer.id }}" onclick="event.stopPropagation();"></td>
                                     <td>{{ offer.offer_number }}</td>
                                     <td>{{ offer.machine_model }}</td>
                                     <td>{{ offer.serial_number }}</td>
@@ -234,7 +234,7 @@ Teklif Listesi - Cermak Servis Hizmetleri
                                     <td>
                                         {% if offer.parts_list and offer.parts_list|length > 0 %}
                                             <button type="button" class="btn btn-sm btn-outline-info" 
-                                                    onclick="showParts('{{ offer.id }}')">
+                                                    onclick="showParts('{{ offer.id }}'); event.stopPropagation();">
                                                 <i class="fas fa-list"></i> Parçaları Göster
                                             </button>
                                         {% else %}
@@ -244,17 +244,58 @@ Teklif Listesi - Cermak Servis Hizmetleri
                                     <td>
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                    onclick="openStatusUpdateModal('{{ offer.id }}', '{{ offer.status }}')">
+                                                    onclick="openStatusUpdateModal('{{ offer.id }}', '{{ offer.status }}'); event.stopPropagation();">
                                                 <i class="fas fa-edit"></i> Durum Güncelle
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-info" 
-                                                    onclick="openStatusHistoryModal('{{ offer.id }}')">
+                                                    onclick="openStatusHistoryModal('{{ offer.id }}'); event.stopPropagation();">
                                                 <i class="fas fa-history"></i> Geçmiş
                                             </button>
                                             <a href="{{ url_for('periodic_maintenance.generate_offer_pdf', offer_id=offer.id) }}" 
-                                               class="btn btn-sm btn-outline-danger">
+                                               class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();">
                                                 <i class="fas fa-file-pdf"></i> PDF
                                             </a>
+                                            {# Hızlı aksiyon butonları #}
+                                            {% if offer.status == 'Teklif Verildi' %}
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Onaylandı">
+                                                    <button type="submit" class="btn btn-sm btn-success ms-1">Onayla</button>
+                                                </form>
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Reddedildi">
+                                                    <button type="submit" class="btn btn-sm btn-danger ms-1">Reddet</button>
+                                                </form>
+                                            {% elif offer.status == 'Onaylandı' %}
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Parçalar Hazırlanıyor">
+                                                    <button type="submit" class="btn btn-sm btn-warning ms-1">Parçalar Hazırlanıyor</button>
+                                                </form>
+                                            {% elif offer.status == 'Parçalar Hazırlanıyor' %}
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Parçalar Hazırlandı">
+                                                    <button type="submit" class="btn btn-sm btn-info ms-1">Parçalar Hazırlandı</button>
+                                                </form>
+                                            {% elif offer.status == 'Parçalar Hazırlandı' %}
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Servise Teslim Edildi">
+                                                    <button type="submit" class="btn btn-sm btn-secondary ms-1">Servise Teslim Edildi</button>
+                                                </form>
+                                            {% elif offer.status == 'Servise Teslim Edildi' %}
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Ödeme Bekleniyor">
+                                                    <button type="submit" class="btn btn-sm btn-dark ms-1">Ödeme Bekleniyor</button>
+                                                </form>
+                                            {% elif offer.status == 'Ödeme Bekleniyor' %}
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Ödeme Alındı">
+                                                    <button type="submit" class="btn btn-sm btn-success ms-1">Ödeme Alındı</button>
+                                                </form>
+                                            {% elif offer.status == 'Ödeme Alındı' %}
+                                                <form method="POST" action="/offer/{{ offer.id }}/update_status" style="display:inline;" onclick="event.stopPropagation();">
+                                                    <input type="hidden" name="new_status" value="Faturalandırıldı">
+                                                    <button type="submit" class="btn btn-sm btn-primary ms-1">Faturalandırıldı</button>
+                                                </form>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -397,7 +438,18 @@ Teklif Listesi - Cermak Servis Hizmetleri
         color: #C8102E;
         font-weight: 500;
     }
+    .offer-card {
+        cursor: pointer;
+        transition: box-shadow 0.3s;
+    }
+    .offer-card:hover {
+        box-shadow: 0 8px 24px rgba(200,16,46,0.15), 0 1.5px 4px rgba(0,0,0,0.08);
+        transform: translateY(-2px) scale(1.01);
+        transition: box-shadow 0.3s, transform 0.3s;
+    }
 </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
 <script>
     $(document).ready(function() {

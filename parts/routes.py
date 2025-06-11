@@ -179,6 +179,7 @@ def update_part_description(part_id):
     return redirect(url_for('parts.part_detail', part_id=part_id))
 
 @parts_bp.route('/parts/search', methods=['GET'])
+@login_required
 def search_parts():
     if not hasattr(current_user, 'permissions') or not current_user.permissions.can_view_parts:
         return {"error": "Yetkiniz yok."}, 403

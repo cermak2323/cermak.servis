@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Teklif Detayı{% endblock %}
+{% block content %}
+<div class="container py-5 animate__animated animate__fadeIn">
+    <div class="card shadow-lg border-0 mb-4 animate__animated animate__zoomIn">
+        <div class="card-body">
+            <h2 class="text-danger fw-bold mb-3">Teklif Detayı</h2>
+            <div id="offer-summary" class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Teklifi Veren:</strong> {{ offer.offeror_name }}</p>
+                    <p><strong>Müşteri:</strong> {{ offer.customer_first_name }} {{ offer.customer_last_name }}</p>
+                    <p><strong>Şirket:</strong> {{ offer.company_name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Teklif No:</strong> {{ offer.offer_number }}</p>
+                    <p><strong>Durum:</strong> <span class="badge bg-info">{{ offer.status }}</span></p>
+                    <p><strong>Oluşturulma Tarihi:</strong> {{ offer.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                </div>
+            </div>
+            <div class="text-center mb-3">
+                <button class="btn btn-outline-primary animate__animated animate__pulse" id="expand-details-btn">
+                    <i class="fas fa-chevron-down"></i> Detayları Göster
+                </button>
+            </div>
+            <div id="offer-details" class="collapse animate__animated animate__fadeInUp">
+                <h5 class="mb-3">Teklif İçeriği</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Parça Kodu</th>
+                                <th>Parça Adı</th>
+                                <th>Miktar</th>
+                                <th>Birim Fiyat (TL)</th>
+                                <th>Toplam (TL)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for part in offer.all_parts_list %}
+                            <tr>
+                                <td>{{ part.part_code }}</td>
+                                <td>{{ part.name }}</td>
+                                <td>{{ part.quantity }}</td>
+                                <td>{{ part.price_try | round(2) }}</td>
+                                <td>{{ (part.price_try * part.quantity) | round(2) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row g-3 mt-4">
+                    <div class="col-md-6 offset-md-3">
+                        <div class="card bg-light shadow-sm mb-3 animate__animated animate__fadeIn">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Ara Toplam</span>
+                                    <span>{{ offer.subtotal|default(0)|float|round(2) }} TL</span>
+                                </div>
+                                {% if offer.discount_type != 'none' and offer.discount_value > 0 %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>İskonto</span>
+                                    <span>-{{ offer.discount_value|default(0)|float|round(2) }} TL</span>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>KDV (%20)</span>
+                                    <span>{{ offer.kdv|default(0)|float|round(2) }} TL</span>
+                                </div>
+                                <div class="d-flex justify-content-between fw-bold fs-5">
+                                    <span>Genel Toplam</span>
+                                    <span>{{ offer.grand_total|default(0)|float|round(2) }} TL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mt-4">
+                    <div class="col-md-6 offset-md-3">
+                        <div class="card bg-light shadow-sm mb-3 animate__animated animate__fadeIn">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Filtre Fiyatı</span>
+                                    <span>{{ offer.filter_price|default(0)|float|round(2) }} TL</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Yağ Fiyatı</span>
+                                    <span>{{ offer.oil_price|default(0)|float|round(2) }} TL</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>İşçilik Ücreti</span>
+                                    <span>{{ offer.labor_cost|default(0)|float|round(2) }} TL</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Yol Ücreti</span>
+                                    <span>{{ offer.travel_cost|default(0)|float|round(2) }} TL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4 animate__animated animate__fadeInUp">
+                    <form method="POST" action="{{ url_for('periodic_maintenance.approve_offer', offer_id=offer.id) }}" style="display:inline-block;">
+                        <button type="submit" class="btn btn-success btn-lg mx-2 animate__animated animate__pulse">Teklif Kabul Edildi</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('periodic_maintenance.reject_offer', offer_id=offer.id) }}" style="display:inline-block;">
+                        <button type="submit" class="btn btn-danger btn-lg mx-2 animate__animated animate__pulse">Teklif Kabul Edilmedi</button>
+                    </form>
+                    <a href="{{ url_for('periodic_maintenance.generate_offer_pdf', offer_id=offer.id) }}" class="btn btn-outline-danger btn-lg mx-2 animate__animated animate__pulse">
+                        <i class="fas fa-file-pdf"></i> PDF İndir
+                    </a>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="{{ url_for('periodic_maintenance.offer_list') }}" class="btn btn-outline-secondary">Geri Dön</a>
+            </div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<script>
+document.getElementById('expand-details-btn').addEventListener('click', function() {
+    var details = document.getElementById('offer-details');
+    if (details.classList.contains('show')) {
+        details.classList.remove('show');
+        this.innerHTML = '<i class="fas fa-chevron-down"></i> Detayları Göster';
+    } else {
+        details.classList.add('show');
+        this.innerHTML = '<i class="fas fa-chevron-up"></i> Detayları Gizle';
+    }
+});
+</script>
+{% endblock %}

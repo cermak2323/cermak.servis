@@ -1,0 +1,577 @@
+{% extends "base.html" %}
+
+{% block title %}
+Yedek Parça Teklifi Oluştur - Cermak Servis Hizmetleri
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Yeni Yedek Parça Teklifi</h4>
+        </div>
+        <div class="card-body">
+            <form id="sparePartsOfferForm" method="POST" action="{{ url_for('offers.create_spare_parts_offer') }}" class="needs-validation" novalidate>
+                <!-- Adım Göstergesi -->
+                <div class="mb-4">
+                    <div class="progress" style="height: 3px;">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;" id="formProgress"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span class="step-indicator active" id="step1-indicator">1. Makine & Müşteri Bilgileri</span>
+                        <span class="step-indicator" id="step2-indicator">2. Parça & Sarf Malzeme</span>
+                        <span class="step-indicator" id="step3-indicator">3. Teklif Özeti</span>
+                    </div>
+                </div>
+
+                <!-- Adım 1: Makine ve Müşteri Bilgileri -->
+                <div class="form-step" id="step1">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="serial_number" class="form-label">Makine Seri Numarası*</label>
+                            <input type="text" class="form-control" id="serial_number" name="serial_number" required>
+                            <div class="invalid-feedback">Seri numarası gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="customer_name" class="form-label">Müşteri Adı*</label>
+                            <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                            <div class="invalid-feedback">Müşteri adı gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="company_name" class="form-label">Firma Adı*</label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" required>
+                            <div class="invalid-feedback">Firma adı gereklidir</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Telefon*</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" pattern="[0-9]{10,11}" required>
+                            <div class="invalid-feedback">Geçerli bir telefon numarası giriniz</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adım 2: Parça ve Sarf Malzeme Seçimi -->
+                <div class="form-step d-none" id="step2">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Yedek Parça Ara ve Ekle</label>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="partSearchInput" placeholder="Parça kodu veya adı ile ara...">
+                                <button class="btn btn-danger" type="button" id="partSearchBtn">Ara</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="partsSearchTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Parça Kodu</th>
+                                            <th>Parça Adı</th>
+                                            <th>Satış Fiyatı (TRY)</th>
+                                            <th>Adet</th>
+                                            <th>Ekle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- JS ile doldurulacak -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <h5>Seçilen Parçalar</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="selectedPartsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Parça Kodu</th>
+                                            <th>Parça Adı</th>
+                                            <th>Satış Fiyatı (TRY)</th>
+                                            <th>Adet</th>
+                                            <th>Kaldır</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- JS ile doldurulacak -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2 mb-4 text-center">
+                            <button type="button" class="btn btn-lg btn-warning fw-bold shadow" id="addConsumableBtn" style="font-size:1.2rem;letter-spacing:1px;">+ Sarf Malzeme Ekle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adım 3: Teklif Özeti ve PDF -->
+                <div class="form-step d-none" id="step3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6 offset-md-3">
+                            <div class="card bg-light shadow-sm mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title mb-3">Toplam Maliyet Özeti</h5>
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <label for="discount_type" class="form-label">İskonto Türü</label>
+                                            <select class="form-select" id="discount_type" name="discount_type">
+                                                <option value="none">İskonto Yok</option>
+                                                <option value="percentage">Yüzde (%)</option>
+                                                <option value="amount">Tutar (TL)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="discount_value" class="form-label">İskonto Değeri</label>
+                                            <input type="number" step="0.01" class="form-control" id="discount_value" name="discount_value" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="fs-5">Parça Maliyeti: <span id="totalPartsCost">0.00 TL</span></div>
+                                    <div class="fs-5 mt-2">İskonto: <span id="discountRow">0.00 TL</span></div>
+                                    <div class="fs-5 mt-2">KDV (%20): <span id="kdvRow">0.00 TL</span></div>
+                                    <div class="fs-4 fw-bold mt-3">Genel Toplam: <span id="grandTotal">0.00 TL</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-4">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn" style="display: none;">Teklif Oluştur ve PDF İndir</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Kontrol Butonları -->
+                <div class="mt-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">Geri</button>
+                    <button type="button" class="btn btn-primary" id="nextBtn">İleri</button>
+                </div>
+
+                <input type="hidden" name="selected_parts" id="selected_parts" value="[]">
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sarf Malzeme Modalı -->
+<div class="modal fade" id="consumableModal" tabindex="-1" aria-labelledby="consumableModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="consumableModalLabel">Sarf Malzeme Ekle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="consumableForm">
+          <div class="mb-3">
+            <label for="consumableCode" class="form-label">Sarf Malzeme Kodu</label>
+            <input type="text" class="form-control" id="consumableCode" maxlength="50">
+          </div>
+          <div class="mb-3">
+            <label for="consumableName" class="form-label">Sarf Malzeme Adı</label>
+            <input type="text" class="form-control" id="consumableName" required>
+          </div>
+          <div class="mb-3">
+            <label for="consumablePrice" class="form-label">Birim Fiyat (TL)</label>
+            <input type="number" class="form-control" id="consumablePrice" min="0" step="0.01" required>
+          </div>
+          <div class="mb-3">
+            <label for="consumableQty" class="form-label">Adet</label>
+            <input type="number" class="form-control" id="consumableQty" min="1" value="1" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Ekle</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 3;
+    const form = document.getElementById('sparePartsOfferForm');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressBar = document.getElementById('formProgress');
+
+    function showStep(step) {
+        for (let i = 1; i <= totalSteps; i++) {
+            const stepDiv = document.getElementById(`step${i}`);
+            if (stepDiv) {
+                if (i === step) {
+                    stepDiv.classList.remove('d-none');
+                } else {
+                    stepDiv.classList.add('d-none');
+                }
+            }
+        }
+    }
+
+    function updateButtons() {
+        prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
+        nextBtn.style.display = currentStep === totalSteps ? 'none' : 'block';
+        submitBtn.style.display = currentStep === totalSteps ? 'block' : 'none';
+    }
+
+    function updateProgress() {
+        const percent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${percent}%`;
+        for (let i = 1; i <= totalSteps; i++) {
+            const indicator = document.getElementById(`step${i}-indicator`);
+            if (indicator) {
+                if (i < currentStep) {
+                    indicator.classList.add('completed');
+                    indicator.classList.remove('active');
+                } else if (i === currentStep) {
+                    indicator.classList.add('active');
+                    indicator.classList.remove('completed');
+                } else {
+                    indicator.classList.remove('active', 'completed');
+                }
+            }
+        }
+    }
+
+    function validateStep(step) {
+        let isValid = true;
+        const currentStepDiv = document.getElementById(`step${step}`);
+        if (!currentStepDiv) return true;
+        const requiredFields = currentStepDiv.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!field.value) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        return isValid;
+    }
+
+    nextBtn.addEventListener('click', function() {
+        if (validateStep(currentStep)) {
+            currentStep++;
+            showStep(currentStep);
+            updateButtons();
+            updateProgress();
+        }
+    });
+
+    prevBtn.addEventListener('click', function() {
+        currentStep--;
+        showStep(currentStep);
+        updateButtons();
+        updateProgress();
+    });
+
+    form.addEventListener('submit', function(e) {
+        // Validate all part prices before submitting
+        let invalidPart = selectedParts.find(part => isNaN(parseFloat(part.price_try)) || part.price_try === '' || part.price_try === null || part.price_try === undefined);
+        if (invalidPart) {
+            alert('Tüm parçalar için geçerli bir fiyat girilmelidir!');
+            e.preventDefault();
+            return false;
+        }
+        if (currentStep !== totalSteps || !validateStep(currentStep)) {
+            e.preventDefault();
+            updateButtons();
+            updateProgress();
+        }
+    });
+
+    // Yedek Parça ve Sarf Malzeme JS
+    let selectedParts = [];
+
+    function renderSelectedPartsTable() {
+        const tbody = document.querySelector('#selectedPartsTable tbody');
+        tbody.innerHTML = '';
+        if (selectedParts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Henüz parça eklenmedi</td></tr>';
+            return;
+        }
+        selectedParts.forEach((part, idx) => {
+            let price = part.price_try || 0;
+            let quantity = parseInt(part.quantity) || 1;
+            let total = (price * quantity).toFixed(2).replace('.', ',');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${part.part_code || '-'}</td>
+                <td>${part.name || '-'}</td>
+                <td class="text-end">${price.toFixed(2).replace('.', ',')} TL</td>
+                <td style="width: 120px;">
+                    <input type="number" min="1" value="${quantity}" class="form-control form-control-sm part-quantity-input" data-idx="${idx}" style="text-align:center;">
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-part-btn" data-idx="${idx}">Kaldır</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        // Miktar değişikliği
+        tbody.querySelectorAll('.part-quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const idx = parseInt(this.dataset.idx);
+                let val = parseInt(this.value) || 1;
+                if (val < 1) val = 1;
+                selectedParts[idx].quantity = val;
+                renderSelectedPartsTable();
+            });
+        });
+        // Kaldırma
+        tbody.querySelectorAll('.remove-part-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.idx);
+                selectedParts.splice(idx, 1);
+                renderSelectedPartsTable();
+            });
+        });
+        document.getElementById('selected_parts').value = JSON.stringify(selectedParts);
+    }
+
+    // Toplamları güncelleyen fonksiyon
+    function updateTotals() {
+        let partsTotal = 0;
+        selectedParts.forEach(part => {
+            let price = parseFloat(part.price_try) || 0;
+            let quantity = parseInt(part.quantity) || 1;
+            partsTotal += price * quantity;
+        });
+        const discountType = document.getElementById('discount_type').value;
+        const discountValue = parseFloat(document.getElementById('discount_value').value) || 0;
+        let discountAmount = 0;
+        if (discountType === 'percentage') {
+            discountAmount = partsTotal * (discountValue / 100);
+        } else if (discountType === 'amount') {
+            discountAmount = Math.min(discountValue, partsTotal);
+        }
+        const discountedTotal = Math.max(0, partsTotal - discountAmount);
+        const kdv = discountedTotal * 0.20;
+        const grandTotal = discountedTotal + kdv;
+        // Format
+        function formatTL(val) { return val.toFixed(2).replace('.', ',') + ' TL'; }
+        document.getElementById('totalPartsCost').textContent = formatTL(partsTotal);
+        document.getElementById('discountRow').textContent = formatTL(discountAmount);
+        document.getElementById('kdvRow').textContent = formatTL(kdv);
+        document.getElementById('grandTotal').textContent = formatTL(grandTotal);
+    }
+
+    // Parça arama
+    const partSearchBtn = document.getElementById('partSearchBtn');
+    const partSearchInput = document.getElementById('partSearchInput');
+    const partsSearchTableBody = document.querySelector('#partsSearchTable tbody');
+    if (partSearchBtn) {
+        partSearchBtn.addEventListener('click', async function() {
+            const query = partSearchInput.value.trim();
+            if (!query) return;
+            partsSearchTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Aranıyor...</td></tr>';
+            const resp = await fetch(`/parts/parts/search?q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            if (data.results && data.results.length > 0) {
+                partsSearchTableBody.innerHTML = '';
+                data.results.forEach(part => {
+                    let price = part.price_try || 0;
+                    let priceText = price.toFixed(2).replace('.', ',') + ' TL';
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${part.part_code || '-'}</td>
+                        <td>${part.name || '-'}</td>
+                        <td class="text-end">${priceText}</td>
+                        <td><input type="number" min="1" value="1" class="form-control form-control-sm part-search-quantity"></td>
+                        <td><button type="button" class="btn btn-success btn-sm add-part-btn">Ekle</button></td>
+                    `;
+                    row.querySelector('.add-part-btn').addEventListener('click', function() {
+                        const quantity = row.querySelector('.part-search-quantity').value;
+                        selectedParts.push({
+                            part_code: part.part_code,
+                            name: part.name,
+                            price_try: price,
+                            quantity: parseInt(quantity) || 1
+                        });
+                        renderSelectedPartsTable();
+                        partsSearchTableBody.innerHTML = '';
+                        partSearchInput.value = '';
+                    });
+                    partsSearchTableBody.appendChild(row);
+                });
+            } else {
+                partsSearchTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Sonuç bulunamadı.</td></tr>';
+            }
+        });
+    }
+
+    // Sarf Malzeme Ekleme
+    const addConsumableBtn = document.getElementById('addConsumableBtn');
+    const consumableModalEl = document.getElementById('consumableModal');
+    let consumableModal = null;
+    if (consumableModalEl) {
+        consumableModal = new bootstrap.Modal(consumableModalEl);
+    }
+    const saveConsumableBtn = document.getElementById('saveConsumableBtn');
+    const consumableForm = document.getElementById('consumableForm');
+    if (addConsumableBtn && consumableModal) {
+        addConsumableBtn.addEventListener('click', function() {
+            document.getElementById('consumableCode').value = '';
+            document.getElementById('consumableName').value = '';
+            document.getElementById('consumablePrice').value = '';
+            document.getElementById('consumableQty').value = 1;
+            consumableModal.show();
+        });
+    }
+    if (consumableForm) {
+        consumableForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission and page reload
+            const code = document.getElementById('consumableCode').value.trim();
+            const name = document.getElementById('consumableName').value.trim();
+            const price = parseFloat(document.getElementById('consumablePrice').value);
+            const quantity = parseInt(document.getElementById('consumableQty').value) || 1;
+            if (!name || isNaN(price) || price < 0) {
+                alert('Lütfen geçerli bir malzeme adı ve fiyatı girin!');
+                return;
+            }
+            selectedParts.push({
+                part_code: code,
+                name: name,
+                price_try: price,
+                quantity: quantity
+            });
+            renderSelectedPartsTable();
+            consumableModal.hide();
+        });
+    }
+    // İlk tabloyu çiz
+    renderSelectedPartsTable();
+
+    // Make discount fields interactive in step 3
+    document.getElementById('discount_type').addEventListener('change', updateTotals);
+    document.getElementById('discount_value').addEventListener('input', updateTotals);
+
+    // Initial setup
+    showStep(currentStep);
+    updateButtons();
+    updateProgress();
+    updateTotals();
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .form-step {
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .form-step:not(.d-none) {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .progress-bar {
+        transition: width 0.3s ease-in-out;
+        background-color: #198754;
+    }
+
+    .step-indicator {
+        color: #6c757d;
+        font-size: 0.9rem;
+        position: relative;
+        padding-top: 10px;
+    }
+
+    .step-indicator.active {
+        color: #198754;
+        font-weight: bold;
+    }
+
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 12px;
+        background-color: #e9ecef;
+        border: 2px solid #6c757d;
+        border-radius: 50%;
+    }
+
+    .step-indicator.active::before {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+    }
+
+    .card-header {
+        border-top-left-radius: 0.5rem !important;
+        border-top-right-radius: 0.5rem !important;
+    }
+
+    .table {
+        vertical-align: middle;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+
+    .btn {
+        border-radius: 0.375rem;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+    }
+
+    .input-group-sm input {
+        text-align: center;
+    }
+
+    .input-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Hover effects */
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Summary cards */
+    .border.rounded-3 {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .border.rounded-3:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+
+    /* Form inputs */
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+        border-color: #198754;
+    }
+
+    .form-select:focus {
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+        border-color: #198754;
+    }
+</style>
+{% endblock styles %}

@@ -35,6 +35,16 @@ Teklif-Onay Sistemi - Cermak Servis Hizmetleri
                     <p>Bekleyen teklifleri görüntüle ve onayla</p>
                 </a>
                 {% endif %}
+
+                {% if current_user.permissions.can_create_offers %}
+                <a href="{{ url_for('offers.create_spare_parts_offer') }}" class="module-card text-decoration-none">
+                    <div class="icon-wrapper">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <h3>Yedek Parça Teklifi Oluştur</h3>
+                    <p>Sadece yedek parça için teklif oluştur</p>
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
